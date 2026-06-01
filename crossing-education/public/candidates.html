@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Candidates - Crossing Education</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="style-v7.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Crossing Education" style="height:36px;width:auto;max-width:120px">
+      <div>Crossing<span>Education</span></div>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">&#9776;</button>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="jobs.html" class="nav-link">Find Jobs</a>
+      <a href="candidates.html" class="nav-link active">Find Candidates</a>
+      <a href="submit.html" class="nav-link">Submit Profile</a>
+      <a href="about.html" class="nav-link">About</a>
+    </div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:100px">
+  <div class="section-title">
+    <h2>Available Candidates</h2>
+    <p>Browse pre-screened professionals ready for their next opportunity.</p>
+  </div>
+
+  <div class="filter-bar" id="filterBar" style="display:none">
+    <input type="text" class="filter-input" id="candSearch" placeholder="Search by name, role, skills, location..." oninput="renderCandidates()">
+    <select class="form-select" id="candLoc" style="width:180px" onchange="renderCandidates()"><option value="">All Locations</option></select>
+  </div>
+
+  <div id="candidatesList"></div>
+</section>
+
+<!-- Candidate Detail Modal -->
+<div class="detail-overlay" id="candModal" onclick="if(event.target===this)closeCandModal()">
+  <div class="detail-modal">
+    <div class="detail-header">
+      <div>
+        <h3 id="modalCandName">Candidate</h3>
+        <div class="detail-meta" id="modalCandMeta"></div>
+      </div>
+      <button class="detail-close" onclick="closeCandModal()">&#10005; Close</button>
+    </div>
+    <div class="detail-body" id="modalCandBody"></div>
+    <div style="padding:0 24px 24px">
+      <a id="modalCandRequest" href="#" class="btn btn-gold" style="width:100%;justify-content:center">&#9993; Request Full Profile</a>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-links"><a href="index.html">Home</a><a href="jobs.html">Jobs</a><a href="candidates.html">Candidates</a><a href="submit.html">Submit</a><a href="about.html">About</a></div>
+  <p>&copy; 2025 Crossing Education. All rights reserved.</p>
+</footer>
+
+<script>
+var allCandidates = [];
+
+async function loadCandidates(){
+  try {
+    var r = await fetch('api/public.php?type=candidates');
+    var data = await r.json();
+    allCandidates = data.candidates || [];
+  } catch(e) { allCandidates = []; }
+}
+
+function escapeHtml(t){ if(!t) return ''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function stripHtml(html){ var tmp = document.createElement('div'); tmp.innerHTML = html || ''; return tmp.textContent || tmp.innerText || ''; }
+function truncate(text, max){
+  var plain = stripHtml(text);
+  if(plain.length <= max) return text || '';
+  return escapeHtml(plain.substring(0, max)) + '...';
+}
+
+function populateFilters(){
+  var locs = {};
+  allCandidates.forEach(function(c){ if(c.location) locs[c.location] = true; });
+  var locSel = document.getElementById('candLoc');
+  var savedLoc = locSel ? locSel.value : '';
+  if(locSel){ locSel.innerHTML = '<option value="">All Locations</option>' + Object.keys(locs).sort().map(function(l){return'<option value="'+escapeHtml(l)+'">'+escapeHtml(l)+'</option>';}).join(''); locSel.value = savedLoc; }
+}
+
+function renderCandidates(){
+  var el = document.getElementById('candidatesList');
+  var filterBar = document.getElementById('filterBar');
+  if(!allCandidates.length){
+    filterBar.style.display = 'none';
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:16px">&#128100;</div><h3 style="font-size:22px;margin-bottom:8px">No Candidate Profiles Currently</h3><p style="color:var(--text2);max-width:400px;margin:0 auto 24px">We update our candidate database regularly. Submit your requirements and we will find the right match for you.</p><a href="submit.html?type=company" class="btn btn-gold">Submit a Job Opening</a></div>';
+    return;
+  }
+  filterBar.style.display = 'flex';
+  populateFilters();
+  var q = (document.getElementById('candSearch')?.value || '').toLowerCase();
+  var loc = document.getElementById('candLoc')?.value || '';
+  var filtered = allCandidates.filter(function(c){
+    var matchQ = !q || (c.name+' '+(c.role||'')+' '+(c.skills||[]).join(' ')+' '+stripHtml(c.highlight)).toLowerCase().includes(q);
+    var matchLoc = !loc || (c.location||'') === loc;
+    return matchQ && matchLoc;
+  });
+  if(!filtered.length){ el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)">No candidates match your search.</div>'; return; }
+  el.innerHTML = filtered.map(function(c){
+    var skills = c.skills || [];
+    return '<div class="listing-card" onclick="openCandModal('+c.id+')">' +
+      '<div class="listing-avatar" style="background:linear-gradient(135deg,var(--accent),var(--gold-dark));color:var(--black);font-weight:700">'+(c.name||'?')[0]+'</div>' +
+      '<div class="listing-body">' +
+        '<div class="listing-title">'+escapeHtml(c.role||'Professional')+'</div>' +
+        '<div class="listing-meta"><span>&#128100; '+escapeHtml(c.name||'Confidential')+'</span><span>&#128205; '+(c.location||'Not specified')+'</span>'+(c.exp?'<span>&#9201; '+escapeHtml(c.exp)+'</span>':'')+'</div>' +
+        '<div class="listing-desc rich-desc">'+truncate(c.highlight,180)+'</div>' +
+        (skills.length?'<div class="listing-tags">'+skills.map(function(s){return'<span class="tag">'+escapeHtml(s)+'</span>';}).join('')+'</div>':'') +
+        '<div style="margin-top:14px"><span class="btn btn-gold btn-sm">View Details &amp; Request &#8594;</span></div>' +
+      '</div></div>';
+  }).join('');
+}
+
+function openCandModal(id){
+  var c = allCandidates.find(function(x){ return x.id === id; });
+  if(!c) return;
+  document.getElementById('modalCandName').textContent = c.name || 'Candidate';
+  document.getElementById('modalCandMeta').innerHTML = (c.role || 'Professional') + (c.location ? ' &bull; ' + c.location : '') + (c.exp ? ' &bull; ' + c.exp : '');
+  var body = '';
+  if(c.highlight) body += '<div class="detail-field"><div class="detail-field-label">Profile Highlight</div><div class="detail-field-value rich-desc">'+c.highlight+'</div></div>';
+  var skills = c.skills || [];
+  if(skills.length) body += '<div class="detail-field"><div class="detail-field-label">Skills</div><div class="detail-tags">'+skills.map(function(s){return'<span class="detail-tag">'+escapeHtml(s)+'</span>';}).join('')+'</div></div>';
+  document.getElementById('modalCandBody').innerHTML = body;
+  document.getElementById('modalCandRequest').href = 'inquiry.html?candidate='+c.id;
+  document.getElementById('candModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeCandModal(){ document.getElementById('candModal').classList.remove('show'); document.body.style.overflow = ''; }
+
+loadCandidates().then(renderCandidates);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Jobs - Crossing Education</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="style-v7.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Crossing Education" style="height:36px;width:auto;max-width:120px">
+      <div>Crossing<span>Education</span></div>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">&#9776;</button>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="jobs.html" class="nav-link active">Find Jobs</a>
+      <a href="candidates.html" class="nav-link">Find Candidates</a>
+      <a href="submit.html" class="nav-link">Submit Profile</a>
+      <a href="about.html" class="nav-link">About</a>
+    </div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:100px">
+  <div class="section-title">
+    <h2>Available Positions</h2>
+    <p>Browse current openings. All positions are verified by our team.</p>
+  </div>
+
+  <div class="filter-bar" id="filterBar" style="display:none">
+    <input type="text" class="filter-input" id="jobSearch" placeholder="Search by title, company, location..." oninput="renderJobs()">
+    <select class="form-select" id="jobLocation" style="width:180px" onchange="renderJobs()"><option value="">All Locations</option></select>
+    <select class="form-select" id="jobType" style="width:180px" onchange="renderJobs()"><option value="">All Types</option></select>
+  </div>
+
+  <div id="jobsList"></div>
+</section>
+
+<!-- Job Detail Modal -->
+<div class="detail-overlay" id="jobModal" onclick="if(event.target===this)closeJobModal()">
+  <div class="detail-modal">
+    <div class="detail-header">
+      <div>
+        <h3 id="modalJobTitle">Job Title</h3>
+        <div class="detail-meta" id="modalJobMeta"></div>
+      </div>
+      <button class="detail-close" onclick="closeJobModal()">&#10005; Close</button>
+    </div>
+    <div class="detail-body" id="modalJobBody"></div>
+    <div style="padding:0 24px 24px">
+      <a id="modalJobApply" href="#" class="btn btn-gold" style="width:100%;justify-content:center">&#9993; Apply for This Role</a>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-links"><a href="index.html">Home</a><a href="jobs.html">Jobs</a><a href="candidates.html">Candidates</a><a href="submit.html">Submit</a><a href="about.html">About</a></div>
+  <p>&copy; 2025 Crossing Education. All rights reserved.</p>
+</footer>
+
+<script>
+var allJobs = [];
+
+async function loadJobs(){
+  try {
+    var r = await fetch('api/public.php?type=jobs');
+    var data = await r.json();
+    allJobs = data.jobs || [];
+  } catch(e) { allJobs = []; }
+}
+
+function escapeHtml(t){ if(!t) return ''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function stripHtml(html){ var tmp = document.createElement('div'); tmp.innerHTML = html || ''; return tmp.textContent || tmp.innerText || ''; }
+function truncate(text, max){
+  var plain = stripHtml(text);
+  if(plain.length <= max) return text || '';
+  return escapeHtml(plain.substring(0, max)) + '...';
+}
+
+function populateFilters(){
+  var locs = {}, types = {};
+  allJobs.forEach(function(j){ if(j.location) locs[j.location] = true; if(j.jobType) types[j.jobType] = true; });
+  var locSel = document.getElementById('jobLocation');
+  var typeSel = document.getElementById('jobType');
+  var savedLoc = locSel ? locSel.value : ''; var savedType = typeSel ? typeSel.value : '';
+  if(locSel){ locSel.innerHTML = '<option value="">All Locations</option>' + Object.keys(locs).sort().map(function(l){return'<option value="'+escapeHtml(l)+'">'+escapeHtml(l)+'</option>';}).join(''); locSel.value = savedLoc; }
+  if(typeSel){ typeSel.innerHTML = '<option value="">All Types</option>' + Object.keys(types).sort().map(function(t){return'<option value="'+escapeHtml(t)+'">'+escapeHtml(t)+'</option>';}).join(''); typeSel.value = savedType; }
+}
+
+function renderJobs(){
+  var el = document.getElementById('jobsList');
+  var filterBar = document.getElementById('filterBar');
+  if(!allJobs.length){
+    filterBar.style.display = 'none';
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:16px">&#128188;</div><h3 style="font-size:22px;margin-bottom:8px">No Open Positions Currently</h3><p style="color:var(--text2);max-width:400px;margin:0 auto 24px">We update our listings regularly. Submit your profile and we will match you with opportunities as they come in.</p><a href="submit.html?type=candidate" class="btn btn-gold">Submit Your CV</a></div>';
+    return;
+  }
+  filterBar.style.display = 'flex';
+  populateFilters();
+  var q = (document.getElementById('jobSearch')?.value || '').toLowerCase();
+  var loc = document.getElementById('jobLocation')?.value || '';
+  var type = document.getElementById('jobType')?.value || '';
+  var filtered = allJobs.filter(function(j){
+    var matchQ = !q || (j.title+' '+j.company+' '+stripHtml(j.description)).toLowerCase().includes(q);
+    var matchLoc = !loc || (j.location||'') === loc;
+    var matchType = !type || (j.jobType||'') === type;
+    return matchQ && matchLoc && matchType;
+  });
+  if(!filtered.length){ el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)">No jobs match your search.</div>'; return; }
+  el.innerHTML = filtered.map(function(j){
+    var skills = j.skills || [];
+    return '<div class="listing-card" onclick="openJobModal('+j.id+')">' +
+      '<div class="listing-avatar" style="background:linear-gradient(135deg,var(--accent),var(--gold-dark));color:var(--black);font-weight:700">'+(j.company||'?')[0]+'</div>' +
+      '<div class="listing-body">' +
+        '<div class="listing-title">'+escapeHtml(j.title)+'</div>' +
+        '<div class="listing-meta"><span>&#128188; '+(j.company||'Confidential')+'</span><span>&#128205; '+(j.location||'Not specified')+'</span>'+(j.salary?'<span>&#128176; '+escapeHtml(j.salary)+'</span>':'')+'</div>' +
+        '<div class="listing-desc rich-desc">'+truncate(j.description,180)+'</div>' +
+        (skills.length?'<div class="listing-tags">'+skills.map(function(s){return'<span class="tag">'+escapeHtml(s)+'</span>';}).join('')+'</div>':'') +
+        '<div style="margin-top:14px"><span class="btn btn-gold btn-sm">View Details &amp; Apply &#8594;</span></div>' +
+      '</div></div>';
+  }).join('');
+}
+
+function openJobModal(id){
+  var j = allJobs.find(function(x){ return x.id === id; });
+  if(!j) return;
+  document.getElementById('modalJobTitle').textContent = j.title;
+  document.getElementById('modalJobMeta').innerHTML = (j.company||'Confidential')+' &bull; '+(j.location||'Not specified')+(j.salary?' &bull; '+j.salary:'')+(j.jobType?' &bull; '+j.jobType:'');
+  var body = '';
+  if(j.description) body += '<div class="detail-field"><div class="detail-field-label">Description</div><div class="detail-field-value rich-desc">'+j.description+'</div></div>';
+  var skills = j.skills || [];
+  if(skills.length) body += '<div class="detail-field"><div class="detail-field-label">Key Skills</div><div class="detail-tags">'+skills.map(function(s){return'<span class="detail-tag">'+escapeHtml(s)+'</span>';}).join('')+'</div></div>';
+  document.getElementById('modalJobBody').innerHTML = body;
+  document.getElementById('modalJobApply').href = 'inquiry.html?job='+j.id;
+  document.getElementById('jobModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeJobModal(){ document.getElementById('jobModal').classList.remove('show'); document.body.style.overflow = ''; }
+
+loadJobs().then(renderJobs);
+</script>
+
+</body>
+</html>

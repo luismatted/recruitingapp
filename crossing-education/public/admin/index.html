@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TalentAI Admin - Crossing Education</title>
+<link rel="icon" type="image/png" href="../logo.png">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#F5C842;--gold-dk:#D4A017;--gold-lt:#FFD966;
+  --bg:#0a0a0a;--bg2:#141414;--bg3:#1e1e1e;--bg4:#2a2a2a;
+  --text:#f5f5f5;--text2:#b0b0b0;--text3:#808080;
+  --green:#00c853;--green-dk:#008c3a;--red:#ff1744;--red-dk:#c4002f;
+  --blue:#2563eb;--cyan:#00d4ff;
+  --border:#3a3a3a;--border-lt:#4a4a4a;
+  --r:10px;--sw:250px;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow:hidden}
+
+/* Login */
+#loginScreen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,rgba(245,200,66,.08) 0%,transparent 70%),var(--bg)}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:380px;text-align:center}
+.login-logo{width:56px;height:56px;background:linear-gradient(135deg,var(--gold),var(--gold-dk));border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--black);font-weight:800;font-size:1.5rem;margin:0 auto 16px}
+.login-box h1{font-size:1.25rem;margin-bottom:4px;color:var(--gold)}
+.login-box>p{color:var(--text3);font-size:.85rem;margin-bottom:24px}
+.login-error{background:rgba(255,23,68,.1);color:var(--red);border:1px solid rgba(255,23,68,.2);border-radius:8px;padding:10px;margin-bottom:12px;font-size:.85rem;display:none}
+.login-input{width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:.9rem;outline:none;font-family:inherit;margin-bottom:12px;transition:border-color .15s}
+.login-input:focus{border-color:var(--gold)}
+.login-btn{width:100%;padding:12px;border:none;border-radius:var(--r);background:var(--gold);color:var(--black);font-weight:700;font-size:.9rem;cursor:pointer;transition:.2s;font-family:inherit}
+.login-btn:hover{filter:brightness(1.1)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-hint{font-size:.75rem;color:var(--text3);margin-top:12px}
+
+/* Layout */
+#app{display:none;height:100vh;flex-direction:column}
+.layout{display:flex;height:100vh}
+.sidebar{width:var(--sw);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transition:transform .2s}
+.sh{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sl{width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--gold-dk));border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--black);font-weight:800;font-size:.9rem;flex-shrink:0}
+.sb2{font-weight:700;font-size:.95rem;color:var(--text)}
+.sb2 small{display:block;font-weight:400;font-size:.72rem;color:var(--text3)}
+.sn{flex:1;padding:10px 8px;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:.875rem;font-weight:500;background:none;width:100%;text-align:left;border:none;margin-bottom:2px;transition:.15s;font-family:inherit}
+.ni:hover{background:var(--bg3);color:var(--text)}
+.ni.act{background:rgba(245,200,66,.12);color:var(--gold)}
+.sf{padding:10px 8px;border-top:1px solid var(--border)}
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* Header */
+.tb{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tbt{font-weight:700;color:var(--gold);font-size:1.05rem}
+
+/* Panels */
+.mc{padding:20px 24px;flex:1;overflow-y:auto}
+.pn{display:none}
+.pn.act{display:block}
+
+/* Stats */
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;margin-bottom:24px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center}
+.sn2{font-size:1.8rem;font-weight:800;color:var(--gold)}.sl2{font-size:.72rem;color:var(--text2);margin-top:2px}
+
+/* Two-column layout for jobs/candidates */
+.tc{display:grid;grid-template-columns:300px 1fr;gap:16px;height:calc(100vh - 140px)}
+.lp{background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.lph{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.lpb{flex:1;overflow-y:auto;padding:4px}
+.dp{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow-y:auto;padding:20px}
+
+/* List items */
+.li{padding:10px 12px;border-bottom:1px solid var(--bg3);cursor:pointer;transition:.1s;display:flex;align-items:flex-start;gap:8px;border-radius:6px;margin:2px 4px}
+.li:hover{background:var(--bg3)}
+.li.sel{background:rgba(245,200,66,.08);border-left:3px solid var(--gold)}
+.lit{font-weight:600;color:var(--text);font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lis{font-size:.77rem;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Detail view */
+.da{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.ds{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.ds:last-child{border-bottom:none;margin-bottom:0}
+.dl{font-size:.72rem;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.dv{color:var(--text2);font-size:.87rem;line-height:1.6}
+.dv.plain{background:var(--bg);padding:10px 14px;border-radius:8px;border:1px solid var(--border);max-height:300px;overflow-y:auto;font-size:.85rem}
+
+/* Badges */
+.bd{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:500}
+.bd-g{background:rgba(0,200,83,.1);color:var(--green)}.bd-r{background:rgba(255,23,68,.1);color:var(--red)}
+.bd-y{background:rgba(245,200,66,.1);color:var(--gold)}.bd-gr{background:var(--bg3);color:var(--text2)}
+.bd-b{background:rgba(0,212,255,.1);color:var(--cyan)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);font-size:.85rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:.15s;font-family:inherit}
+.btn:hover{border-color:var(--gold);color:var(--text)}
+.btn-p{background:var(--gold);color:var(--black);border-color:var(--gold)}
+.btn-p:hover{filter:brightness(1.1)}
+.btn-d{background:rgba(255,23,68,.15);color:var(--red);border-color:rgba(255,23,68,.3)}
+.btn-d:hover{background:rgba(255,23,68,.25)}
+.btn-s{background:rgba(0,200,83,.15);color:var(--green);border-color:rgba(0,200,83,.3)}
+.btn-s:hover{background:rgba(0,200,83,.25)}
+.btn-g{background:var(--bg3);color:var(--text2)}
+.btn-sm{padding:5px 12px;font-size:.78rem}
+.btn-xs{padding:3px 8px;font-size:.72rem}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-ic{background:none;border:none;padding:4px;color:var(--text3);cursor:pointer;border-radius:6px;font-size:1rem;transition:.15s}
+.btn-ic:hover{background:var(--bg3);color:var(--text)}
+
+/* Modals */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.mo.show{display:flex}
+.md{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.mh{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mt{font-weight:700;color:var(--text);font-size:1rem}
+.mb{padding:20px;overflow-y:auto;flex:1}
+.mf{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+/* Forms */
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.inp{width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:.87rem;outline:none;font-family:inherit;transition:border-color .15s}
+.inp:focus{border-color:var(--gold)}
+select.inp{cursor:pointer}
+
+/* Chat */
+.cw{display:flex;flex-direction:column;height:calc(100vh - 130px)}
+.cm{flex:1;overflow-y:auto;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px}
+.msg{display:flex;flex-direction:column;max-width:82%;animation:msgIn .25s ease}
+.mu{align-self:flex-end}.mb2{align-self:flex-start}
+.bbl{padding:10px 14px;border-radius:13px;font-size:.875rem;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.mu .bbl{background:var(--gold);color:var(--black);font-weight:500;border-bottom-right-radius:3px}
+.mb2 .bbl{background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-bottom-left-radius:3px}
+.me .bbl{background:rgba(255,23,68,.1);color:var(--red);border:1px solid rgba(255,23,68,.2)}
+.ac{margin-top:6px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.15);border-radius:10px;padding:10px 12px;font-size:.82rem}
+.acl{color:var(--gold);font-weight:600;margin-bottom:6px;font-size:.8rem}
+.cf{display:flex;gap:8px;align-items:flex-end}
+.cin{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:.875rem;font-family:inherit;resize:none;outline:none;transition:border-color .15s;overflow:hidden;min-height:44px;max-height:150px}
+.cin:focus{border-color:var(--gold)}
+.tk{display:flex;gap:4px;padding:12px 14px;align-items:center}
+.tk span{width:7px;height:7px;background:var(--text3);border-radius:50%;animation:bo 1.2s ease-in-out infinite}
+.tk span:nth-child(2){animation-delay:.2s}.tk span:nth-child(3){animation-delay:.4s}
+@keyframes bo{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Screening cards */
+.vg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.vc{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center}
+.vn{font-size:2.2rem;font-weight:800}.vl{font-size:.82rem;margin-top:4px;color:var(--text2)}
+
+/* Settings */
+.stc{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;max-width:480px}
+.stc h3{font-weight:600;color:var(--text);margin-bottom:3px;font-size:1rem}
+.stc>p{color:var(--text2);font-size:.82rem;margin-bottom:14px}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg3);color:var(--text);padding:10px 20px;border-radius:10px;font-size:.85rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid var(--border)}
+#toast.show{opacity:1}
+
+/* Misc */
+.em{text-align:center;padding:40px 20px;color:var(--text3);font-size:.85rem}
+.de{display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--text3)}
+.er{font-size:.82rem;color:var(--red);background:rgba(255,23,68,.08);border:1px solid rgba(255,23,68,.15);border-radius:8px;padding:10px 14px;margin-bottom:12px}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tbb{display:flex;gap:2px;background:var(--bg3);padding:4px;border-radius:9px;width:fit-content;margin-bottom:16px}
+.tbt2{padding:7px 15px;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:500;color:var(--text2);background:transparent;border:none;transition:.15s;font-family:inherit}
+.tbt2.act{background:var(--bg4);color:var(--text)}
+.hidden{display:none!important}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}.tc{grid-template-columns:1fr;height:auto}
+  .dp{min-height:300px}.vg{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">T</div>
+    <h1>TalentAI</h1>
+    <p>Admin Panel - Crossing Education</p>
+    <div class="login-error" id="loginError"></div>
+    <form id="loginForm">
+      <input type="password" class="login-input" id="loginPw" placeholder="Enter password" autocomplete="current-password" autofocus>
+      <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+    </form>
+    <p class="login-hint">Default password: talent2025</p>
+  </div>
+</div>
+
+<!-- ==================== APP ==================== -->
+<div id="app">
+<div class="layout">
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sh">
+    <div class="sl">T</div>
+    <div class="sb2">TalentAI<small>Admin Panel</small></div>
+  </div>
+  <nav class="sn">
+    <button class="ni act" data-p="dashboard" onclick="switchPanel('dashboard')">&#128202; Dashboard</button>
+    <button class="ni" data-p="jobs" onclick="switchPanel('jobs')">&#128188; Jobs</button>
+    <button class="ni" data-p="candidates" onclick="switchPanel('candidates')">&#128100; Candidates</button>
+    <button class="ni" data-p="screenings" onclick="switchPanel('screenings')">&#128269; Screenings</button>
+    <button class="ni" data-p="website" onclick="switchPanel('website')">&#127760; Website</button>
+    <button class="ni" data-p="chat" onclick="switchPanel('chat')">&#129302; AI Chat</button>
+    <button class="ni" data-p="settings" onclick="switchPanel('settings')">&#9881; Settings</button>
+  </nav>
+  <div class="sf">
+    <button class="ni" onclick="logout()" style="color:var(--red)">&#128682; Sign Out</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+<!-- Header -->
+<div class="tb">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="btn-ic" onclick="toggleSidebar()" style="font-size:1.2rem;display:none" id="menuBtn">&#9776;</button>
+    <span class="tbt" id="pageTitle">Dashboard</span>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-g btn-sm" onclick="refreshAll()">&#128260; Refresh</button>
+    <button class="btn btn-g btn-sm" onclick="showExport()">&#128229; Export</button>
+  </div>
+</div>
+
+<!-- Content -->
+<div class="mc">
+
+<!-- DASHBOARD -->
+<div class="pn act" id="pn-dashboard">
+  <div class="sg">
+    <div class="sc"><div style="font-size:1.5rem;margin-bottom:4px">&#128188;</div><div class="sn2" id="statJobs">0</div><div class="sl2">Jobs</div></div>
+    <div class="sc"><div style="font-size:1.5rem;margin-bottom:4px">&#128100;</div><div class="sn2" id="statCandidates">0</div><div class="sl2">Candidates</div></div>
+    <div class="sc"><div style="font-size:1.5rem;margin-bottom:4px">&#128269;</div><div class="sn2" id="statScreenings">0</div><div class="sl2">Screened</div></div>
+    <div class="sc"><div style="font-size:1.5rem;margin-bottom:4px">&#128200;</div><div class="sn2" id="statAvg">-</div><div class="sl2">Avg Score</div></div>
+    <div class="sc"><div style="font-size:1.5rem;margin-bottom:4px">&#127760;</div><div class="sn2" id="statPubJobs">0</div><div class="sl2">Public Jobs</div></div>
+    <div class="sc"><div style="font-size:1.5rem;margin-bottom:4px">&#10024;</div><div class="sn2" id="statPubCands">0</div><div class="sl2">Public Profiles</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="sc" style="text-align:left">
+      <div style="font-weight:600;margin-bottom:10px;color:var(--text)">Recent Jobs</div>
+      <div id="dashJobs"><div class="em">Loading...</div></div>
+    </div>
+    <div class="sc" style="text-align:left">
+      <div style="font-weight:600;margin-bottom:10px;color:var(--text)">Recent Candidates</div>
+      <div id="dashCandidates"><div class="em">Loading...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- JOBS -->
+<div class="pn" id="pn-jobs">
+  <div class="tc">
+    <div class="lp">
+      <div class="lph">
+        <input type="text" class="inp" id="jobSearch" placeholder="Search..." style="flex:1" oninput="renderJobList()">
+        <button class="btn btn-p btn-sm" onclick="openJobModal()">+ Add</button>
+      </div>
+      <div class="lpb" id="jobListBox"></div>
+    </div>
+    <div class="dp" id="jobDetailBox">
+      <div class="de"><div><div style="font-size:3rem">&#128188;</div><p>Select a job</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CANDIDATES -->
+<div class="pn" id="pn-candidates">
+  <div class="tc">
+    <div class="lp">
+      <div class="lph">
+        <input type="text" class="inp" id="candSearch" placeholder="Search..." style="flex:1" oninput="renderCandList()">
+        <button class="btn btn-p btn-sm" onclick="openCandModal()">+ Add</button>
+      </div>
+      <div class="lpb" id="candListBox"></div>
+    </div>
+    <div class="dp" id="candDetailBox">
+      <div class="de"><div><div style="font-size:3rem">&#128100;</div><p>Select a candidate</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREENINGS -->
+<div class="pn" id="pn-screenings">
+  <div class="vg">
+    <div class="vc"><div class="vn" id="vYes" style="color:var(--green)">0</div><div class="vl" style="color:var(--green)">Strong Yes</div></div>
+    <div class="vc"><div class="vn" id="vMaybe" style="color:var(--gold)">0</div><div class="vl" style="color:var(--gold)">Maybe</div></div>
+    <div class="vc"><div class="vn" id="vNo" style="color:var(--red)">0</div><div class="vl" style="color:var(--red)">No</div></div>
+  </div>
+  <div id="screeningList"></div>
+</div>
+
+<!-- WEBSITE -->
+<div class="pn" id="pn-website">
+  <div class="tbb">
+    <button class="tbt2 act" onclick="switchWebTab('jobs',this)">Public Jobs (<span id="wpj">0</span>)</button>
+    <button class="tbt2" onclick="switchWebTab('cands',this)">Profiles (<span id="wpc">0</span>)</button>
+  </div>
+  <div id="wt-jobs">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-p btn-sm" onclick="openPubJobModal()">+ Add Public Job</button>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:10px">&#127760; Publish from Internal Jobs</div>
+      <div id="publishJobSection"></div>
+    </div>
+    <div id="pubJobList"></div>
+  </div>
+  <div id="wt-cands" class="hidden">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-p btn-sm" onclick="openPubCandModal()">+ Add Profile</button>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:10px">&#9989; Publish Screened YES Candidates</div>
+      <div id="publishCandSection"></div>
+    </div>
+    <div id="pubCandList"></div>
+  </div>
+</div>
+
+<!-- AI CHAT -->
+<div class="pn" id="pn-chat">
+  <div style="font-size:.75rem;color:var(--text3);margin-bottom:8px" id="chatContext">Loading context...</div>
+  <div class="cw">
+    <div class="cm" id="chatMessages">
+      <div class="em" style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;justify-content:center">
+        <div style="font-size:3rem">&#129302;</div>
+        <div style="font-weight:700;color:var(--text)">TalentAI Assistant</div>
+        <div style="font-size:.85rem;color:var(--text2);max-width:320px;text-align:center">Ask about jobs, candidates, or tell me to create records. I remember our full conversation.</div>
+        <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:360px;margin-top:8px">
+          <button class="btn btn-g btn-sm" onclick="quickChat('Add a job: Finance Manager at ABC Corp, Singapore, S$8k-12k/month')" style="justify-content:flex-start;font-size:.8rem">&#128188; "Add job: Finance Manager at ABC Corp"</button>
+          <button class="btn btn-g btn-sm" onclick="quickChat('Which candidates have the highest screening scores?')" style="justify-content:flex-start;font-size:.8rem">&#128100; "Which candidates scored highest?"</button>
+          <button class="btn btn-g btn-sm" onclick="quickChat('Screen candidate #1 against job #2')" style="justify-content:flex-start;font-size:.8rem">&#9889; "Screen candidate against job"</button>
+        </div>
+      </div>
+    </div>
+    <div class="cf">
+      <textarea class="cin" id="chatInput" rows="1" placeholder="Ask anything... Shift+Enter for new line"></textarea>
+      <button class="btn btn-p" id="sendBtn" onclick="sendChat()" style="height:44px;padding:0 16px">Send</button>
+    </div>
+    <div style="font-size:.72rem;color:var(--text3);text-align:center;margin-top:6px">Enter to send &middot; Shift+Enter for new line &middot; <button onclick="clearChatHistory()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.72rem">Clear Chat</button></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="pn" id="pn-settings">
+  <div class="stc">
+    <h3>&#9881; OpenAI API Key</h3>
+    <p>Required for AI screening and chat. Stored in your browser only.</p>
+    <div style="display:flex;gap:8px">
+      <input type="password" class="inp" id="settingKey" placeholder="sk-..." style="flex:1">
+      <button class="btn btn-p btn-sm" onclick="saveKey()">Save</button>
+    </div>
+    <div id="keyStatus" style="font-size:.78rem;margin-top:6px;color:var(--green)"></div>
+  </div>
+  <div class="stc">
+    <h3>&#128241; WhatsApp Number</h3>
+    <p>Phone number for the WhatsApp button on the public site.</p>
+    <div style="display:flex;gap:8px">
+      <input type="text" class="inp" id="settingWa" placeholder="15551234567" style="flex:1">
+      <button class="btn btn-p btn-sm" onclick="saveWa()">Save</button>
+    </div>
+  </div>
+  <div class="stc">
+    <h3>&#128274; Change Password</h3>
+    <p>Update the admin login password.</p>
+    <div class="fg"><label>New Password</label><input type="password" class="inp" id="newPw" autocomplete="new-password"></div>
+    <div class="fg"><label>Confirm</label><input type="password" class="inp" id="confirmPw" autocomplete="new-password"></div>
+    <div id="pwMsg" class="hidden er"></div>
+    <button class="btn btn-p" onclick="changePassword()">Update Password</button>
+  </div>
+  <div class="stc">
+    <h3>&#127760; Public Site</h3>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <a href="../index.html" target="_blank" class="btn btn-g" style="justify-content:space-between">Homepage <span>&#8599;</span></a>
+      <a href="../jobs.html" target="_blank" class="btn btn-g" style="justify-content:space-between">Job Listings <span>&#8599;</span></a>
+      <a href="../candidates.html" target="_blank" class="btn btn-g" style="justify-content:space-between">Talent Pool <span>&#8599;</span></a>
+    </div>
+  </div>
+</div>
+
+</div></div></div></div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Job Modal -->
+<div class="mo" id="jobModal">
+  <div class="md">
+    <div class="mh"><span class="mt" id="jobModalTitle">Add Job</span><button class="btn-ic" onclick="closeModal('jobModal')">&#10005;</button></div>
+    <div class="mb">
+      <input type="hidden" id="jobId">
+      <div class="fr">
+        <div class="fg"><label>Title *</label><input type="text" class="inp" id="jobTitle"></div>
+        <div class="fg"><label>Company</label><input type="text" class="inp" id="jobCompany"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Location</label><input type="text" class="inp" id="jobLocation"></div>
+        <div class="fg"><label>Salary</label><input type="text" class="inp" id="jobSalary"></div>
+      </div>
+      <div class="fg"><label>Status</label><select class="inp" id="jobStatus"><option value="active">Active</option><option value="draft">Draft</option><option value="closed">Closed</option></select></div>
+      <div class="fg"><label>Description</label><textarea class="inp" id="jobDesc" rows="5" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="closeModal('jobModal')">Cancel</button><button class="btn btn-p" id="jobSaveBtn" onclick="saveJob()">Save</button></div>
+  </div>
+</div>
+
+<!-- Candidate Modal -->
+<div class="mo" id="candModal">
+  <div class="md">
+    <div class="mh"><span class="mt" id="candModalTitle">Add Candidate</span><button class="btn-ic" onclick="closeModal('candModal')">&#10005;</button></div>
+    <div class="mb">
+      <input type="hidden" id="candId">
+      <div class="fr">
+        <div class="fg"><label>Full Name *</label><input type="text" class="inp" id="candName"></div>
+        <div class="fg"><label>Current Role</label><input type="text" class="inp" id="candRole"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Company</label><input type="text" class="inp" id="candCompany"></div>
+        <div class="fg"><label>Location</label><input type="text" class="inp" id="candLoc"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Linked Job</label><select class="inp" id="candLinkedJob"><option value="">- None -</option></select></div>
+        <div class="fg"><label>Stage</label><select class="inp" id="candStage"><option value="PENDING">Pending</option><option value="SUBMITTED">Submitted</option><option value="SCREENING">Screening</option><option value="INTERVIEW">Interview</option><option value="OFFER">Offer</option><option value="HIRED">Hired</option><option value="REJECTED">Rejected</option></select></div>
+      </div>
+      <div class="fg"><label>CV / Resume Text</label><textarea class="inp" id="candCv" rows="5" style="resize:vertical" placeholder="Paste CV here..."></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="closeModal('candModal')">Cancel</button><button class="btn btn-p" id="candSaveBtn" onclick="saveCand()">Save</button></div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="mo" id="exportModal">
+  <div class="md" style="max-width:400px">
+    <div class="mh"><span class="mt">Export / Import</span><button class="btn-ic" onclick="closeModal('exportModal')">&#10005;</button></div>
+    <div class="mb">
+      <div style="font-weight:600;margin-bottom:8px;color:var(--text)">Export</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+        <button class="btn btn-g btn-sm" onclick="exportJSON()">&#128229; JSON</button>
+        <button class="btn btn-g btn-sm" onclick="exportCSV('jobs')">&#128200; Jobs CSV</button>
+        <button class="btn btn-g btn-sm" onclick="exportCSV('candidates')">&#128200; Candidates CSV</button>
+      </div>
+      <div style="font-weight:600;margin-bottom:8px;color:var(--text)">Import JSON</div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+      <button class="btn btn-g btn-sm" onclick="document.getElementById('importFile').click()">&#128230; Choose File</button>
+      <div id="importStatus" style="font-size:.78rem;margin-top:8px;color:var(--green)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Public Job Modal -->
+<div class="mo" id="pubJobModal">
+  <div class="md">
+    <div class="mh"><span class="mt" id="pubJobModalTitle">Add Public Job</span><button class="btn-ic" onclick="closeModal('pubJobModal')">&#10005;</button></div>
+    <div class="mb">
+      <input type="hidden" id="pubJobId">
+      <div class="fr"><div class="fg"><label>Title *</label><input type="text" class="inp" id="pubJobTitle"></div><div class="fg"><label>Company</label><input type="text" class="inp" id="pubJobCompany"></div></div>
+      <div class="fr"><div class="fg"><label>Location</label><input type="text" class="inp" id="pubJobLocation"></div><div class="fg"><label>Salary</label><input type="text" class="inp" id="pubJobSalary"></div></div>
+      <div class="fg"><label>Skills (comma-separated)</label><input type="text" class="inp" id="pubJobSkills" placeholder="SAP, GL, IFRS..."></div>
+      <div class="fg"><label>Description</label><textarea class="inp" id="pubJobDesc" rows="4" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="closeModal('pubJobModal')">Cancel</button><button class="btn btn-p" onclick="savePubJob()">Save</button></div>
+  </div>
+</div>
+
+<!-- Public Candidate Modal -->
+<div class="mo" id="pubCandModal">
+  <div class="md">
+    <div class="mh"><span class="mt" id="pubCandModalTitle">Add Public Profile</span><button class="btn-ic" onclick="closeModal('pubCandModal')">&#10005;</button></div>
+    <div class="mb">
+      <input type="hidden" id="pubCandId">
+      <div class="fr"><div class="fg"><label>Name *</label><input type="text" class="inp" id="pubCandName"></div><div class="fg"><label>Role</label><input type="text" class="inp" id="pubCandRole"></div></div>
+      <div class="fr"><div class="fg"><label>Location</label><input type="text" class="inp" id="pubCandLocation"></div><div class="fg"><label>Experience</label><input type="text" class="inp" id="pubCandExp" placeholder="5+ years"></div></div>
+      <div class="fg"><label>Skills (comma-separated)</label><input type="text" class="inp" id="pubCandSkills"></div>
+      <div class="fg"><label>Highlight</label><textarea class="inp" id="pubCandHighlight" rows="3" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="closeModal('pubCandModal')">Cancel</button><button class="btn btn-p" onclick="savePubCand()">Save</button></div>
+  </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const API='../api';
+const AUTH_KEY='ce_admin_auth';
+const CHAT_KEY='ce_admin_chat_v1';
+const OAI_KEY='ce_openai_key';
+
+let authHash=localStorage.getItem(AUTH_KEY)||'';
+let oaiKey=localStorage.getItem(OAI_KEY)||'';
+let S={jobs:[],candidates:[],pJobs:[],pCands:[]};
+let selJob=null,selCand=null,chatHist=[];
+
+const TITLES={dashboard:'Dashboard',jobs:'Jobs',candidates:'Candidates',screenings:'Screenings',website:'Website',chat:'AI Chat',settings:'Settings'};
+
+// ==================== UTILS ====================
+function hp(pw){let h=0;for(let i=0;i<pw.length;i++){h=((h<<5)-h)+pw.charCodeAt(i);h|=0;}return String(h);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
+function au(p){const sep=p.includes('?')?'&':'?';return`${API}/${p}${sep}auth=${encodeURIComponent(authHash)}`;}
+async function ag(p){const r=await fetch(au(p));const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
+async function ap(p,b){const r=await fetch(au(p),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
+async function aput(p,b){const r=await fetch(au(p),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
+async function adel(p){const r=await fetch(au(p),{method:'DELETE'});const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
+function showModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');}));
+
+// ==================== AUTH ====================
+document.getElementById('loginForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const pw=document.getElementById('loginPw').value;
+  const btn=document.getElementById('loginBtn');
+  const err=document.getElementById('loginError');
+  if(!pw){err.textContent='Please enter a password';err.style.display='block';return;}
+  err.style.display='none';btn.disabled=true;btn.innerHTML='<span class="sp"></span> Signing in...';
+  const hash=hp(pw);
+  try{
+    const r=await fetch(`${API}/auth.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hash})});
+    const d=await r.json();
+    if(d.authenticated){authHash=hash;localStorage.setItem(AUTH_KEY,hash);initApp();}
+    else{err.textContent='Incorrect password. Default is: talent2025';err.style.display='block';}
+  }catch(x){err.textContent='Error: '+x.message;err.style.display='block';}
+  btn.disabled=false;btn.textContent='Sign In';
+});
+function logout(){localStorage.removeItem(AUTH_KEY);authHash='';location.reload();}
+
+// ==================== INIT ====================
+async function initApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  loadSettings();await refreshAll();loadChat();
+}
+async function refreshAll(){
+  try{
+    const[j,c]=await Promise.all([ag('jobs.php'),ag('candidates.php')]);
+    S.jobs=Array.isArray(j.jobs)?j.jobs:[];
+    S.candidates=Array.isArray(c.candidates)?c.candidates:[];
+    // Public data (no auth needed)
+    try{const pj=await fetch(`${API}/public.php?type=jobs`).then(r=>r.json());S.pJobs=Array.isArray(pj.jobs)?pj.jobs:[];}catch(e){S.pJobs=[];}
+    try{const pc=await fetch(`${API}/public.php?type=candidates`).then(r=>r.json());S.pCands=Array.isArray(pc.candidates)?pc.candidates:[];}catch(e){S.pCands=[];}
+    updateDash();renderJobList();renderCandList();renderScreenings();renderWebsite();updateChatContext();
+    toast('Refreshed');
+  }catch(x){toast('Refresh error: '+x.message);}
+}
+
+// Boot check
+if(authHash){
+  fetch(`${API}/auth.php?auth=${encodeURIComponent(authHash)}`)
+    .then(r=>r.json())
+    .then(d=>{if(d&&d.authenticated)initApp();else{localStorage.removeItem(AUTH_KEY);authHash='';}})
+    .catch(()=>{});
+}
+
+// ==================== NAV ====================
+function switchPanel(p){
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('act'));
+  document.querySelectorAll('.pn').forEach(x=>x.classList.remove('act'));
+  document.querySelector('.ni[data-p="'+p+'"]').classList.add('act');
+  document.getElementById('pn-'+p).classList.add('act');
+  document.getElementById('pageTitle').textContent=TITLES[p]||p;
+  if(window.innerWidth<900)document.getElementById('sidebar').classList.remove('open');
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+if(window.innerWidth<900)document.getElementById('menuBtn').style.display='flex';
+
+// ==================== DASHBOARD ====================
+function updateDash(){
+  const screened=S.candidates.filter(c=>c.screeningScore!=null);
+  const avg=screened.length?Math.round(screened.reduce((s,c)=>s+(+c.screeningScore||0),0)/screened.length):null;
+  document.getElementById('statJobs').textContent=S.jobs.length;
+  document.getElementById('statCandidates').textContent=S.candidates.length;
+  document.getElementById('statScreenings').textContent=screened.length;
+  document.getElementById('statAvg').textContent=avg!=null?avg+'%':'-';
+  document.getElementById('statPubJobs').textContent=S.pJobs.length;
+  document.getElementById('statPubCands').textContent=S.pCands.length;
+  document.getElementById('dashJobs').innerHTML=S.jobs.slice(0,6).map(j=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bg3)"><span style="font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${esc(j.title)}</span><span class="bd ${j.status==='active'?'bd-g':j.status==='draft'?'bd-gr':'bd-r'}">${esc(j.status)}</span></div>`).join('')||'<div class="em">No jobs yet</div>';
+  document.getElementById('dashCandidates').innerHTML=screened.sort((a,b)=>(+b.screeningScore||0)-(+a.screeningScore||0)).slice(0,6).map(c=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bg3)"><span style="font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${esc(c.name)}</span><span class="bd ${+c.screeningScore>=75?'bd-g':+c.screeningScore>=50?'bd-y':'bd-r'}">${c.screeningScore}%</span></div>`).join('')||'<div class="em">No screened candidates</div>';
+}
+
+// ==================== JOBS ====================
+function renderJobList(){
+  const q=(document.getElementById('jobSearch').value||'').toLowerCase();
+  const fl=S.jobs.filter(j=>!q||(j.title||'').toLowerCase().includes(q)||(j.company||'').toLowerCase().includes(q));
+  const b=document.getElementById('jobListBox');
+  if(!fl.length){b.innerHTML='<div class="em">No jobs</div>';return;}
+  b.innerHTML=fl.map(j=>{
+    const cc=S.candidates.filter(c=>+c.linkedJobId===+j.id).length;
+    return`<div class="li${selJob&&selJob.id==j.id?' sel':''}" onclick="selectJob(${j.id})"><div style="flex:1;min-width:0"><div class="lit">${esc(j.title)}</div><div class="lis">${esc(j.company||'')}${j.location?' &bull; '+esc(j.location):''}</div><div style="margin-top:3px;display:flex;gap:3px"><span class="bd ${j.status==='active'?'bd-g':j.status==='draft'?'bd-gr':'bd-r'}">${esc(j.status)}</span>${cc?`<span class="bd bd-b">${cc}</span>`:''}</div></div><div style="display:flex;gap:2px;flex-shrink:0"><button class="btn-ic" onclick="event.stopPropagation();openJobModal(${j.id})">&#9998;</button><button class="btn-ic" onclick="event.stopPropagation();deleteJob(${j.id})">&#128465;</button></div></div>`;
+  }).join('');
+}
+function selectJob(id){selJob=S.jobs.find(j=>+j.id===+id);renderJobList();renderJobDetail();}
+function renderJobDetail(){
+  const el=document.getElementById('jobDetailBox');
+  if(!selJob){el.innerHTML='<div class="de"><div><div style="font-size:3rem">&#128188;</div><p>Select a job</p></div></div>';return;}
+  const j=selJob;const cc=S.candidates.filter(c=>+c.linkedJobId===+j.id);
+  el.innerHTML=`<div class="da"><button class="btn btn-p btn-sm" onclick="openJobModal(${j.id})">&#9998; Edit</button><button class="btn btn-d btn-sm" onclick="deleteJob(${j.id})">&#128465; Delete</button><button class="btn btn-s btn-sm" onclick="publishJob(${j.id})">&#127760; Publish</button></div>
+  <div class="ds"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:1.1rem;font-weight:700;color:var(--text)">${esc(j.title)}</div><div style="color:var(--text2);margin-top:3px">${[esc(j.company||''),esc(j.location||''),esc(j.salary||'')].filter(Boolean).join(' &bull; ')}</div></div><span class="bd ${j.status==='active'?'bd-g':j.status==='draft'?'bd-gr':'bd-r'}">${esc(j.status)}</span></div></div>
+  ${j.description?`<div class="ds"><div class="dl">Description</div><div class="dv rich-desc">${j.description}</div></div>`:''}
+  <div class="ds"><div class="dl">Linked Candidates (${cc.length})</div>${cc.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bg3)"><span style="font-size:.84rem">${esc(c.name)}</span>${c.screeningScore!=null?`<span class="bd ${+c.screeningScore>=75?'bd-g':+c.screeningScore>=50?'bd-y':'bd-r'}">${c.screeningScore}%</span>`:'<span class="bd bd-gr">Unscreened</span>'}</div>`).join('')||'<div style="color:var(--text3);font-size:.84rem;padding-top:4px">None</div>'}</div>`;
+}
+function openJobModal(id){
+  const j=id?S.jobs.find(x=>+x.id===+id):null;
+  document.getElementById('jobModalTitle').textContent=j?'Edit Job':'Add Job';
+  document.getElementById('jobId').value=j?j.id:'';
+  document.getElementById('jobTitle').value=j?j.title||'' : '';
+  document.getElementById('jobCompany').value=j?j.company||'' : '';
+  document.getElementById('jobLocation').value=j?j.location||'' : '';
+  document.getElementById('jobSalary').value=j?j.salary||'' : '';
+  document.getElementById('jobStatus').value=j?j.status||'active':'active';
+  document.getElementById('jobDesc').value=j?stripHtml(j.description)||'' : '';
+  showModal('jobModal');
+  setTimeout(()=>document.getElementById('jobTitle').focus(),50);
+}
+function stripHtml(html){const tmp=document.createElement('div');tmp.innerHTML=html||'';return tmp.textContent||tmp.innerText||'';}
+async function saveJob(){
+  const id=document.getElementById('jobId').value;
+  const title=document.getElementById('jobTitle').value.trim();
+  if(!title){toast('Title required');return;}
+  const btn=document.getElementById('jobSaveBtn');btn.disabled=true;btn.innerHTML='<span class="sp"></span>';
+  const d={title,company:document.getElementById('jobCompany').value,location:document.getElementById('jobLocation').value,salary:document.getElementById('jobSalary').value,description:document.getElementById('jobDesc').value,status:document.getElementById('jobStatus').value};
+  try{if(id){await aput('jobs.php',{...d,id});Object.assign(S.jobs.find(j=>+j.id===+id),d);if(selJob&&+selJob.id===+id){selJob={...selJob,...d};renderJobDetail();}}else{const r=await ap('jobs.php',d);S.jobs.unshift({...d,id:r.id,createdAt:new Date().toISOString()});}
+  closeModal('jobModal');renderJobList();updateDash();updateChatContext();toast(id?'Updated':'Created');}catch(x){toast('Error: '+x.message);}
+  btn.disabled=false;btn.textContent='Save';
+}
+async function deleteJob(id){if(!confirm('Delete this job?'))return;try{await adel('jobs.php?id='+id);S.jobs=S.jobs.filter(j=>+j.id!==+id);if(selJob&&+selJob.id===+id){selJob=null;renderJobDetail();}renderJobList();updateDash();updateChatContext();toast('Deleted');}catch(x){toast('Error: '+x.message);}}
+
+// ==================== CANDIDATES ====================
+function renderCandList(){
+  const q=(document.getElementById('candSearch').value||'').toLowerCase();
+  const fl=S.candidates.filter(c=>!q||(c.name||'').toLowerCase().includes(q)||(c.currentRole||'').toLowerCase().includes(q));
+  const b=document.getElementById('candListBox');
+  if(!fl.length){b.innerHTML='<div class="em">No candidates</div>';return;}
+  b.innerHTML=fl.map(c=>`<div class="li${selCand&&selCand.id==c.id?' sel':''}" onclick="selectCand(${c.id})"><div style="flex:1;min-width:0"><div class="lit">${esc(c.name)}</div><div class="lis">${esc(c.currentRole||'')}${c.currentCompany?' at '+esc(c.currentCompany):''}</div><div style="margin-top:3px;display:flex;gap:3px;flex-wrap:wrap">${c.screeningScore!=null?`<span class="bd ${+c.screeningScore>=75?'bd-g':+c.screeningScore>=50?'bd-y':'bd-r'}">${c.screeningScore}% ${c.screeningVerdict||''}</span>`:''}${c.stage?`<span class="bd bd-b">${esc(c.stage)}</span>`:''}</div></div><div style="display:flex;gap:2px;flex-shrink:0">${c.screeningScore==null?`<button class="btn-ic" onclick="event.stopPropagation();screenCand(${c.id})" title="AI Screen">&#9889;</button>`:''}<button class="btn-ic" onclick="event.stopPropagation();openCandModal(${c.id})">&#9998;</button><button class="btn-ic" onclick="event.stopPropagation();deleteCand(${c.id})">&#128465;</button></div></div>`).join('');
+}
+function selectCand(id){selCand=S.candidates.find(c=>+c.id===+id);renderCandList();renderCandDetail();}
+function renderCandDetail(){
+  const el=document.getElementById('candDetailBox');
+  if(!selCand){el.innerHTML='<div class="de"><div><div style="font-size:3rem">&#128100;</div><p>Select a candidate</p></div></div>';return;}
+  const c=selCand;const job=S.jobs.find(j=>+j.id===+c.linkedJobId);
+  const sc=+c.screeningScore||0;const col=sc>=75?'var(--green)':sc>=50?'var(--gold)':'var(--red)';
+  el.innerHTML=`<div class="da"><button class="btn btn-p btn-sm" onclick="openCandModal(${c.id})">&#9998; Edit</button>${c.screeningScore==null?`<button class="btn btn-s btn-sm" onclick="screenCand(${c.id})">&#9889; Screen</button>`:''}${c.screeningVerdict==='YES'?`<button class="btn btn-g btn-sm" onclick="publishCand(${c.id})">&#127760; Publish</button>`:''}<button class="btn btn-d btn-sm" onclick="deleteCand(${c.id})">&#128465; Delete</button></div>
+  <div class="ds"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:1.1rem;font-weight:700;color:var(--text)">${esc(c.name)}</div><div style="color:var(--text2);margin-top:3px">${[esc(c.currentRole||''),esc(c.currentCompany||''),esc(c.location||'')].filter(Boolean).join(' &bull; ')}</div>${job?`<div style="color:var(--gold);font-size:.84rem;margin-top:3px">&#128188; ${esc(job.title)}</div>`:''}${c.stage?`<span class="bd bd-b" style="margin-top:5px;display:inline-block">${esc(c.stage)}</span>`:''}</div>${c.screeningScore!=null?`<div style="width:56px;height:56px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0">${sc}%</div>`:''}</div></div>
+  ${c.screeningVerdict?`<div class="ds"><div class="dl">AI Screening</div><span class="bd ${c.screeningVerdict==='YES'?'bd-g':c.screeningVerdict==='NO'?'bd-r':'bd-y'}">${c.screeningVerdict}</span>${c.screeningRationale?`<div class="dv" style="margin-top:6px">${esc(c.screeningRationale)}</div>`:''}${c.screeningKeyStrength?`<div style="color:var(--green);font-size:.84rem;margin-top:4px">&#128170; ${esc(c.screeningKeyStrength)}</div>`:''}</div>`:''}
+  ${c.cvText?`<div class="ds"><div class="dl">CV</div><div class="dv plain">${esc(c.cvText)}</div></div>`:''}`;
+}
+function openCandModal(id){
+  const c=id?S.candidates.find(x=>+x.id===+id):null;
+  document.getElementById('candModalTitle').textContent=c?'Edit Candidate':'Add Candidate';
+  document.getElementById('candId').value=c?c.id:'';
+  document.getElementById('candName').value=c?c.name||'' : '';
+  document.getElementById('candRole').value=c?c.currentRole||'' : '';
+  document.getElementById('candCompany').value=c?c.currentCompany||'' : '';
+  document.getElementById('candLoc').value=c?c.location||'' : '';
+  document.getElementById('candCv').value=c?c.cvText||'' : '';
+  document.getElementById('candStage').value=c?c.stage||'PENDING':'PENDING';
+  const sel=document.getElementById('candLinkedJob');
+  sel.innerHTML='<option value="">- None -</option>'+S.jobs.map(j=>`<option value="${j.id}"${c&&+c.linkedJobId===+j.id?' selected':''}>${esc(j.title)}</option>`).join('');
+  showModal('candModal');
+  setTimeout(()=>document.getElementById('candName').focus(),50);
+}
+async function saveCand(){
+  const id=document.getElementById('candId').value;
+  const name=document.getElementById('candName').value.trim();
+  if(!name){toast('Name required');return;}
+  const btn=document.getElementById('candSaveBtn');btn.disabled=true;btn.innerHTML='<span class="sp"></span>';
+  const d={name,currentRole:document.getElementById('candRole').value,currentCompany:document.getElementById('candCompany').value,location:document.getElementById('candLoc').value,cvText:document.getElementById('candCv').value,stage:document.getElementById('candStage').value,linkedJobId:document.getElementById('candLinkedJob').value||null};
+  try{if(id){await aput('candidates.php',{...d,id});Object.assign(S.candidates.find(c=>+c.id===+id),d);if(selCand&&+selCand.id===+id){selCand={...selCand,...d};renderCandDetail();}}else{const r=await ap('candidates.php',d);S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});}
+  closeModal('candModal');renderCandList();updateDash();updateChatContext();toast(id?'Updated':'Added');}catch(x){toast('Error: '+x.message);}
+  btn.disabled=false;btn.textContent='Save';
+}
+async function deleteCand(id){if(!confirm('Delete this candidate?'))return;try{await adel('candidates.php?id='+id);S.candidates=S.candidates.filter(c=>+c.id!==+id);if(selCand&&+selCand.id===+id){selCand=null;renderCandDetail();}renderCandList();updateDash();updateChatContext();toast('Deleted');}catch(x){toast('Error: '+x.message);}}
+
+// ==================== AI SCREENING ====================
+async function screenCand(id){
+  if(!oaiKey){toast('Set OpenAI API key in Settings first');return;}
+  const c=S.candidates.find(x=>+x.id===+id);
+  if(!c){toast('Candidate not found');return;}
+  const job=S.jobs.find(j=>+j.id===+c.linkedJobId);
+  if(!job){toast('Link candidate to a job first');return;}
+  toast('AI screening in progress...');
+  try{
+    const res=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+oaiKey},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'system',content:'You are an expert recruitment screener for finance/accounting roles. Score candidates with the same criteria you use for initial assessments. Be decisive: YES (75-100%), MAYBE (50-74%), NO (0-49%). Flag title inflation, detect hidden gems (ERP, SOX, M&A, go-live, intercompany). Give concise rationale in 2-3 sentences.'},{role:'user',content:`Screen this candidate for: ${job.title} at ${job.company||'Unknown'}
+
+JOB REQUIREMENTS:
+${stripHtml(job.description||'').substring(0,2000)}
+
+CANDIDATE PROFILE:
+Name: ${c.name}
+Role: ${c.currentRole||'N/A'} at ${c.currentCompany||'N/A'}
+Location: ${c.location||'N/A'}
+
+${c.cvText||'No CV'}
+
+Respond with ONLY JSON: {"verdict":"YES|MAYBE|NO","score":0-100,"rationale":"2-3 sentences explaining fit or gaps","keyStrength":"one key strength or gap"}`}],response_format:{type:'json_object'},temperature:0.3})});
+    const data=await res.json();if(data.error)throw new Error(data.error.message);
+    const rs=JSON.parse(data.choices[0].message.content);
+    const upd={...c,screeningScore:rs.score,screeningVerdict:rs.verdict,screeningRationale:rs.rationale,screeningKeyStrength:rs.keyStrength};
+    await aput('candidates.php',upd);Object.assign(c,upd);
+    if(selCand&&+selCand.id===+id){selCand={...selCand,...upd};renderCandDetail();}
+    await ap('screenings.php',{candidateId:c.id,jobId:job.id,verdict:rs.verdict,score:rs.score,rationale:rs.rationale,keyStrength:rs.keyStrength});
+    renderCandList();renderScreenings();updateDash();toast(`Screened: ${rs.verdict} (${rs.score}%)`);
+  }catch(x){toast('Screening error: '+x.message);}
+}
+
+// ==================== SCREENINGS ====================
+function renderScreenings(){
+  const sc=S.candidates.filter(c=>c.screeningScore!=null).sort((a,b)=>(+b.screeningScore||0)-(+a.screeningScore||0));
+  document.getElementById('vYes').textContent=sc.filter(c=>c.screeningVerdict==='YES').length;
+  document.getElementById('vMaybe').textContent=sc.filter(c=>c.screeningVerdict==='MAYBE').length;
+  document.getElementById('vNo').textContent=sc.filter(c=>c.screeningVerdict==='NO').length;
+  const el=document.getElementById('screeningList');
+  if(!sc.length){el.innerHTML='<div class="em">No screened candidates yet.</div>';return;}
+  el.innerHTML=sc.map(c=>{const job=S.jobs.find(j=>+j.id===+c.linkedJobId);const s=+c.screeningScore||0;const col=s>=75?'var(--green)':s>=50?'var(--gold)':'var(--red)';return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start"><div style="width:50px;height:50px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0">${s}%</div><div style="flex:1;min-width:0"><div style="font-weight:600;color:var(--text)">${esc(c.name)} <span class="bd ${c.screeningVerdict==='YES'?'bd-g':c.screeningVerdict==='NO'?'bd-r':'bd-y'}">${c.screeningVerdict}</span></div><div style="font-size:.81rem;color:var(--text2);margin-top:2px">${esc(c.currentRole||'')}${job?' &rarr; '+esc(job.title):''}</div>${c.screeningRationale?`<div style="font-size:.84rem;color:var(--text2);margin-top:4px">${esc(c.screeningRationale)}</div>`:''}${c.screeningKeyStrength?`<div style="font-size:.8rem;color:var(--green);margin-top:3px">&#128170; ${esc(c.screeningKeyStrength)}</div>`:''}</div></div>`;}).join('');
+}
+
+// ==================== WEBSITE ====================
+function switchWebTab(tab,btn){
+  document.querySelectorAll('.tbt2').forEach(b=>b.classList.remove('act'));btn.classList.add('act');
+  document.getElementById('wt-jobs').classList.toggle('hidden',tab!=='jobs');
+  document.getElementById('wt-cands').classList.toggle('hidden',tab!=='cands');
+}
+function renderWebsite(){
+  document.getElementById('wpj').textContent=S.pJobs.length;
+  document.getElementById('wpc').textContent=S.pCands.length;
+  // Publish jobs section
+  document.getElementById('publishJobSection').innerHTML=S.jobs.length?S.jobs.map(j=>{const pub=S.pJobs.find(p=>+p.sourceJobId===+j.id);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bg3)"><span style="font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${esc(j.title)}</span><button class="btn btn-sm ${pub?'btn-s':'btn-p'}" onclick="publishJob(${j.id})" style="min-width:80px">${pub?'&#10003; Update':'Publish'}</button></div>`;}).join(''):'<div style="color:var(--text3);font-size:.84rem">No internal jobs</div>';
+  // Publish candidates section (YES only)
+  const yc=S.candidates.filter(c=>c.screeningVerdict==='YES');
+  document.getElementById('publishCandSection').innerHTML=yc.length?yc.map(c=>{const pub=S.pCands.find(p=>+p.sourceCandidateId===+c.id);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bg3)"><span style="font-size:.84rem">${esc(c.name)} <span style="color:var(--green);font-size:.77rem">(${c.screeningScore}%)</span></span><button class="btn btn-sm ${pub?'btn-s':'btn-p'}" onclick="publishCand(${c.id})" style="min-width:80px">${pub?'&#10003; Update':'Publish'}</button></div>`;}).join(''):'<div style="color:var(--text3);font-size:.84rem">No YES candidates yet. AI screen candidates first.</div>';
+  // Public lists
+  document.getElementById('pubJobList').innerHTML=S.pJobs.length?S.pJobs.map(j=>{const sk=j.skills||[];return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:7px;display:flex;gap:8px"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.88rem;color:var(--text)">${esc(j.title)}</div><div style="font-size:.77rem;color:var(--text2)">${[esc(j.company||''),esc(j.location||'')].filter(Boolean).join(' &bull; ')}</div>${sk.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${sk.map(s=>`<span class="bd bd-gr">${esc(s)}</span>`).join('')}</div>`:''}</div><div style="display:flex;gap:2px;flex-shrink:0"><button class="btn-ic" onclick="editPubJob(${j.id})">&#9998;</button><button class="btn-ic" onclick="deletePubJob(${j.id})">&#128465;</button></div></div>`;}).join(''):'<div class="em">No public jobs yet.</div>';
+  document.getElementById('pubCandList').innerHTML=S.pCands.length?S.pCands.map(c=>{const sk=c.skills||[];return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:7px;display:flex;gap:8px"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.88rem;color:var(--text)">${esc(c.name)}</div><div style="font-size:.77rem;color:var(--text2)">${[esc(c.role||''),esc(c.location||'')].filter(Boolean).join(' &bull; ')}</div>${c.highlight?`<div style="font-size:.82rem;color:var(--text2);margin-top:3px">${esc(c.highlight)}</div>`:''}${sk.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${sk.map(s=>`<span class="bd bd-gr">${esc(s)}</span>`).join('')}</div>`:''}</div><div style="display:flex;gap:2px;flex-shrink:0"><button class="btn-ic" onclick="editPubCand(${c.id})">&#9998;</button><button class="btn-ic" onclick="deletePubCand(${c.id})">&#128465;</button></div></div>`;}).join(''):'<div class="em">No public profiles yet.</div>';
+}
+async function publishJob(id){
+  const j=S.jobs.find(x=>+x.id===+id);if(!j)return;
+  try{const ex=S.pJobs.find(p=>+p.sourceJobId===+id);
+  const d={title:j.title,company:j.company||'',location:j.location||'',salary:j.salary||'',desc:stripHtml(j.description||''),skills:[],sourceJobId:id};
+  if(ex){await aput('public.php?type=jobs',{...d,id:ex.id});Object.assign(ex,d);}else{const r=await ap('public.php?type=jobs',d);S.pJobs.unshift({...d,id:r.id});}
+  renderWebsite();toast('Published');}catch(x){toast('Error: '+x.message);}
+}
+async function publishCand(id){
+  const c=S.candidates.find(x=>+x.id===+id);if(!c)return;
+  try{const ex=S.pCands.find(p=>+p.sourceCandidateId===+c.id);
+  const d={name:c.name,role:c.currentRole||'',location:c.location||'',exp:'',highlight:'',skills:[],sourceCandidateId:id};
+  if(ex){await aput('public.php?type=candidates',{...d,id:ex.id});Object.assign(ex,d);}else{const r=await ap('public.php?type=candidates',d);S.pCands.unshift({...d,id:r.id});}
+  renderWebsite();toast('Published');}catch(x){toast('Error: '+x.message);}
+}
+
+// ==================== CHAT ====================
+function loadChat(){try{const r=localStorage.getItem(CHAT_KEY);chatHist=r?JSON.parse(r):[];if(!Array.isArray(chatHist))chatHist=[];}catch(e){chatHist=[];}}
+function saveChat(){localStorage.setItem(CHAT_KEY,JSON.stringify(chatHist.slice(-60)));}
+function clearChatHistory(){chatHist=[];localStorage.removeItem(CHAT_KEY);document.getElementById('chatMessages').innerHTML='<div class="em" style="flex:1;justify-content:center">Chat cleared</div>';}
+function updateChatContext(){document.getElementById('chatContext').textContent=`Context: ${S.jobs.length} jobs · ${S.candidates.length} candidates · ${S.pJobs.length} public`;}
+function quickChat(t){document.getElementById('chatInput').value=t;document.getElementById('chatInput').focus();}
+
+function buildSysPrompt(){
+  const jx=S.jobs.map(j=>`Job #${j.id}: ${j.title} @${j.company||'?'} | ${j.location||'?'} [${j.status}]\n${stripHtml(j.description||'').substring(0,300)}`).join('\n\n');
+  const cx=S.candidates.map(c=>`Candidate #${c.id}: ${c.name} | ${c.currentRole||'?'} @${c.currentCompany||'?'} | ${c.location||'?'} | Score: ${c.screeningScore||'unscreened'} | ${c.screeningVerdict||'-'}\n${(c.cvText||'').substring(0,200)}`).join('\n\n');
+  // Track which job was most recently discussed
+  const recentJobMsg = chatHist.filter(m => m.role === 'user').slice(-5).find(m => {
+    const t = m.text.toLowerCase();
+    return S.jobs.some(j => t.includes((j.title||'').toLowerCase()) || t.includes((j.company||'').toLowerCase()));
+  });
+  const lastDiscussedJob = recentJobMsg ? S.jobs.find(j => 
+    recentJobMsg.text.toLowerCase().includes((j.title||'').toLowerCase()) || 
+    recentJobMsg.text.toLowerCase().includes((j.company||'').toLowerCase())
+  ) : null;
+  
+  return `You are TalentAI, a recruitment AI for Crossing Education (finance/accounting specialist).\n\nRULES:\n- Give decisive YES/NO/MAYBE verdicts with 0-100% scores\n- Flag title inflation, detect hidden gems (ERP, SOX, M&A, go-live)\n- Explain in 2-3 sentences max\n- When user wants to add a candidate/job, use the available tools\n\nCRITICAL RULES:\n1. When creating a candidate, ALWAYS set linkedJobId to 0 (this auto-links to the most recently discussed job).\n2. Only use linkedJobId:-1 if the user explicitly says NOT to link to any job.\n3. When user says "add to the list" after discussing a job, they mean link to that job.\n\n${lastDiscussedJob ? `MOST RECENTLY DISCUSSED JOB: #${lastDiscussedJob.id} - ${lastDiscussedJob.title} @ ${lastDiscussedJob.company || '?'}` : 'No specific job recently discussed.'}\n\nINTERNAL JOBS (${S.jobs.length}):\n${jx||'(none)'}\n\nCANDIDATES (${S.candidates.length}):\n${cx||'(none)'}`;
+}
+
+function extractActions(text){
+  const actions=[];
+  // Match ```action or ```json blocks
+  const re=/```(?:action|json)?\n?([\s\S]*?)\n?```/gi;
+  let m;while((m=re.exec(text))!==null){try{const p=JSON.parse(m[1].trim());if(p.type&&p.data)actions.push(p);}catch(e){}}
+  // Try finding standalone JSON objects with type+data
+  if(!actions.length){
+    const re2=/\{\s*"type"\s*:\s*"(createJob|createCandidate|screenCandidate|moveStage)"\s*,\s*"data"\s*:\s*\{[\s\S]*?\}\s*\}/g;
+    let m2;while((m2=re2.exec(text))!==null){try{const p=JSON.parse(m2[0]);if(p.type&&p.data)actions.push(p);}catch(e){}}
+  }
+  return actions;
+}
+function stripActions(text){return text.replace(/```(?:action|json)?[\s\S]*?```/gi,'').replace(/\{\s*"type"\s*:\s*"(createJob|createCandidate|screenCandidate|moveStage)"[\s\S]*?"data"[\s\S]*?\}\s*\}/g,'').trim();}
+
+function renderChatMsg(m,i){
+  const isU=m.role==='user';
+  const isE=m.role==='assistant'&&m.text.startsWith('Error:');
+  let html=`<div class="msg ${isU?'mu':'mb2'} ${isE?'me':''}" data-i="${i}"><div class="bbl">${esc(m.text)}</div>`;
+  if(m.actions&&m.actions.length){
+    m.actions.forEach((a,ai)=>{
+      const st=a._status||'pending';
+      if(st==='done'){const isErr=(a._result||'').startsWith('Error');html+=`<div class="ac"><div style="color:${isErr?'var(--red)':'var(--green)'};font-size:.8rem">${isErr?'&#10007;':'&#10003;'} ${esc(a._result||'Done')}</div></div>`;return;}
+      if(st==='dismissed'){html+=`<div class="ac"><div style="color:var(--text3);font-size:.8rem">&#10007; Dismissed</div></div>`;return;}
+      const sum=a.type==='createJob'?`"${a.data.title||'?'}"`:a.type==='createCandidate'?`"${a.data.name||'?'}"`:a.type;
+      html+=`<div class="ac" id="ac-${i}-${ai}"><div class="acl">&#128221; ${esc(a.type)}: ${esc(sum)}</div><div style="display:flex;gap:6px"><button class="btn btn-s btn-xs" onclick="confirmAction(${i},${ai})">&#10003; Confirm</button><button class="btn btn-g btn-xs" onclick="dismissAction(${i},${ai})">&#10007; Dismiss</button></div></div>`;
+    });
+  } else if(m.role==='assistant'&&!isE&&m.text.match(/creat|add|put/)&&m.text.match(/candidate|job|list/)){
+    const isCand=m.text.match(/candidate/i);
+    html+=`<div class="ac"><div style="color:var(--gold);font-size:.8rem">&#9888; Action block missing — create manually:</div><button class="btn btn-p btn-xs" onclick="${isCand?'openCandModal()':'openJobModal()'}" style="margin-top:4px">+ Create ${isCand?'Candidate':'Job'}</button></div>`;
+  }
+  html+='</div>';return html;
+}
+
+// Track last created IDs for action chaining
+let _lastJobId=null,_lastCandId=null;
+
+async function execAction(a){
+  const d=a.data;
+  if(a.type==='createJob'){const r=await ap('jobs.php',d);_lastJobId=r.id;S.jobs.unshift({...d,id:r.id,status:'active',createdAt:new Date().toISOString()});renderJobList();updateDash();updateChatContext();return`Job "${d.title}" created (ID:${r.id})`;}
+  if(a.type==='createCandidate'){const r=await ap('candidates.php',d);_lastCandId=r.id;S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});renderCandList();updateDash();updateChatContext();return`Candidate "${d.name}" added (ID:${r.id})`;}
+  if(a.type==='moveStage'){const cid=+d.candidateId||_lastCandId;if(!cid)throw new Error('No candidate ID');const c=S.candidates.find(x=>+x.id===cid);if(!c)throw new Error('Candidate #'+cid+' not found');await aput('candidates.php',{...c,stage:d.stage});c.stage=d.stage;renderCandList();renderCandDetail();return`${c.name} moved to ${d.stage}`;}
+  if(a.type==='screenCandidate'){const cid=+d.candidateId||_lastCandId;if(!cid)throw new Error('No candidate ID — create candidate first');const c=S.candidates.find(x=>+x.id===cid);if(!c)throw new Error('Candidate #'+cid+' not found');const job=S.jobs.find(j=>+j.id===+c.linkedJobId);if(!job)throw new Error('Not linked to a job');await screenCand(cid);return`Screened candidate #${cid}`;}
+  throw new Error('Unknown: '+a.type);
+}
+async function confirmAction(mi,ai){
+  const m=chatHist[mi];if(!m||!m.actions)return;
+  const a=m.actions[ai];if(!a)return;
+  const el=document.getElementById(`ac-${mi}-${ai}`);if(el)el.innerHTML='<div style="font-size:.78rem;color:var(--text3)">Executing...</div>';
+  try{const r=await execAction(a);a._status='done';a._result=r;toast(r);}catch(x){a._status='done';a._result='Error: '+x.message;toast('Error: '+x.message);}
+  saveChat();if(el)el.outerHTML=renderChatMsg(m,mi).match(/<div class="ac"[\s\S]*?<\/div>/g)?.[ai]||'';
+}
+function dismissAction(mi,ai){
+  const m=chatHist[mi];if(!m||!m.actions)return;
+  const a=m.actions[ai];if(a)a._status='dismissed';
+  saveChat();
+  const el=document.getElementById(`ac-${mi}-${ai}`);if(el)el.outerHTML=`<div class="ac"><div style="color:var(--text3);font-size:.8rem">&#10007; Dismissed</div></div>`;
+}
+
+document.getElementById('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
+document.getElementById('chatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
+
+const OAI_TOOLS=[{'type':'function','function':{'name':'createCandidate','description':'Add a candidate to the database. CRITICAL: ALWAYS set linkedJobId to 0 to link to the most recently discussed job, unless user explicitly says not to link.','parameters':{'type':'object','properties':{'name':{'type':'string','description':'Full name'},'currentRole':{'type':'string','description':'Current or most recent job title'},'currentCompany':{'type':'string','description':'Current or most recent employer'},'location':{'type':'string','description':'City, Country'},'cvText':{'type':'string','description':'Complete CV/resume text with all experience, education, skills'},'linkedJobId':{'type':'number','description':'ALWAYS use 0 to auto-link to the most recently discussed job. Use -1 only if user says NOT to link.'}},'required':['name','cvText']}}},{'type':'function','function':{'name':'createJob','description':'Add a job to the database. Use when user provides a job description.','parameters':{'type':'object','properties':{'title':{'type':'string'},'company':{'type':'string'},'location':{'type':'string'},'salary':{'type':'string'},'description':{'type':'string','description':'Full job description including responsibilities and requirements'}},'required':['title','description']}}},{'type':'function','function':{'name':'screenCandidate','description':'Screen a candidate against their linked job using AI analysis. Use when user asks to evaluate fit or screen.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added candidate.'}},'required':['candidateId']}}},{'type':'function','function':{'name':'moveStage','description':'Change a candidate pipeline stage.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'},'stage':{'type':'string','enum':['PENDING','SUBMITTED','SCREENING','INTERVIEW','OFFER','HIRED','REJECTED']}},'required':['candidateId','stage']}}}];
+
+async function sendChat(){
+  if(!oaiKey){toast('Set OpenAI API key in Settings first');return;}
+  const inp=document.getElementById('chatInput');const text=inp.value.trim();if(!text)return;
+  const btn=document.getElementById('sendBtn');btn.disabled=true;btn.textContent='...';
+  inp.value='';inp.style.height='44px';
+  const el=document.getElementById('chatMessages');if(el.querySelector('.em'))el.innerHTML='';
+  const mi=chatHist.length;const um={role:'user',text,t:Date.now()};chatHist.push(um);saveChat();
+  el.insertAdjacentHTML('beforeend',renderChatMsg(um,mi));el.scrollTop=el.scrollHeight;
+  const tk=document.createElement('div');tk.className='msg mb2';tk.innerHTML='<div class="tk"><span></span><span></span><span></span></div>';el.appendChild(tk);el.scrollTop=el.scrollHeight;
+  try{
+    const msgs=[{role:'system',content:buildSysPrompt()},...chatHist.slice(-20).map(m=>({role:m.role,content:m.text}))];
+    const res=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+oaiKey},body:JSON.stringify({model:'gpt-4o-mini',messages:msgs,tools:OAI_TOOLS,tool_choice:'auto',temperature:0.7,max_tokens:2000})});
+    const data=await res.json();if(data.error)throw new Error(data.error.message);
+    const msg=data.choices[0].message;
+    let clean=msg.content||'Done';let acts=[];
+    // Extract tool calls (function calling) - reliable structured output
+    if(msg.tool_calls&&msg.tool_calls.length){
+      for(const tc of msg.tool_calls){
+        if(tc.function){
+          try{const args=JSON.parse(tc.function.arguments);acts.push({type:tc.function.name,data:args});}catch(e){}
+        }
+      }
+    }
+    // Fallback: also try old extraction from content
+    if(!acts.length){const oldActs=extractActions(clean);if(oldActs.length)acts=oldActs;}
+    const bi=chatHist.length;const bm={role:'assistant',text:clean,actions:acts,t:Date.now()};chatHist.push(bm);saveChat();
+    tk.remove();el.insertAdjacentHTML('beforeend',renderChatMsg(bm,bi));el.scrollTop=el.scrollHeight;
+  }catch(x){tk.remove();const ei=chatHist.length;const em2={role:'assistant',text:'Error: '+x.message,t:Date.now()};chatHist.push(em2);saveChat();el.insertAdjacentHTML('beforeend',renderChatMsg(em2,ei));el.scrollTop=el.scrollHeight;}
+  btn.disabled=false;btn.textContent='Send';
+}
+
+// ==================== SETTINGS ====================
+function loadSettings(){
+  document.getElementById('settingKey').value=oaiKey;
+  if(oaiKey)document.getElementById('keyStatus').textContent='Key is set';
+  const wa=JSON.parse(localStorage.getItem('ce_settings')||'{}').wa||'';
+  if(wa)document.getElementById('settingWa').value=wa;
+}
+function saveKey(){oaiKey=document.getElementById('settingKey').value.trim();localStorage.setItem(OAI_KEY,oaiKey);document.getElementById('keyStatus').textContent=oaiKey?'Key saved':'Key removed';toast('API key saved');}
+function saveWa(){const wa=document.getElementById('settingWa').value.trim();localStorage.setItem('ce_settings',JSON.stringify({wa}));toast('Saved');}
+async function changePassword(){
+  const np=document.getElementById('newPw').value;const cp=document.getElementById('confirmPw').value;
+  const el=document.getElementById('pwMsg');
+  if(np!==cp){el.textContent='Passwords do not match';el.classList.remove('hidden');el.style.display='block';return;}
+  if(np.length<6){el.textContent='Minimum 6 characters';el.classList.remove('hidden');el.style.display='block';return;}
+  try{const r=await fetch(au('auth.php'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({newHash:hp(np)})});const d=await r.json();
+  if(d.success){authHash=hp(np);localStorage.setItem(AUTH_KEY,authHash);el.textContent='Password updated';el.style.color='var(--green)';el.classList.remove('hidden');el.style.display='block';document.getElementById('newPw').value='';document.getElementById('confirmPw').value='';}
+  else {el.textContent='Failed';el.classList.remove('hidden');el.style.display='block';}
+  }catch(x){el.textContent='Error: '+x.message;el.classList.remove('hidden');el.style.display='block';}
+}
+
+// ==================== EXPORT ====================
+function showExport(){showModal('exportModal');}
+function exportJSON(){download('talentai-export.json','application/json',JSON.stringify({jobs:S.jobs,candidates:S.candidates,exportedAt:new Date().toISOString()},null,2));}
+function exportCSV(type){
+  if(type==='jobs'){const rows=[['ID','Title','Company','Location','Salary','Status'],...S.jobs.map(j=>[j.id,j.title,j.company,j.location,j.salary,j.status])];download('jobs.csv','text/csv',rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n'));}
+  else{const rows=[['ID','Name','Role','Company','Score','Verdict','Stage'],...S.candidates.map(c=>[c.id,c.name,c.currentRole,c.currentCompany,c.screeningScore,c.screeningVerdict,c.stage])];download('candidates.csv','text/csv',rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n'));}
+}
+function download(name,type,content){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href);}
+async function importJSON(inp){
+  const f=inp.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=async function(e){
+    try{const d=JSON.parse(e.target.result);let n=0;
+    if(d.jobs)for(const j of d.jobs){try{await ap('jobs.php',j);n++;}catch(x){}}
+    if(d.candidates)for(const c of d.candidates){try{await ap('candidates.php',c);n++;}catch(x){}}
+    document.getElementById('importStatus').textContent=`Imported ${n} records`;await refreshAll();
+    }catch(x){document.getElementById('importStatus').textContent='Error: '+x.message;}
+  };rd.readAsText(f);inp.value='';
+}
+
+// ==================== PUB MODAL HANDLERS ====================
+function openPubJobModal(id){const j=id?S.pJobs.find(x=>+x.id===+id):null;document.getElementById('pubJobModalTitle').textContent=j?'Edit Public Job':'Add Public Job';document.getElementById('pubJobId').value=j?j.id:'';document.getElementById('pubJobTitle').value=j?j.title||'':'';document.getElementById('pubJobCompany').value=j?j.company||'':'';document.getElementById('pubJobLocation').value=j?j.location||'':'';document.getElementById('pubJobSalary').value=j?j.salary||'':'';document.getElementById('pubJobSkills').value=(j&&j.skills?j.skills.join(', '):'');document.getElementById('pubJobDesc').value=j?j.description||j.desc||'':'';showModal('pubJobModal');}
+async function savePubJob(){const id=document.getElementById('pubJobId').value;const title=document.getElementById('pubJobTitle').value.trim();if(!title){toast('Title required');return;}const sk=document.getElementById('pubJobSkills').value.split(',').map(s=>s.trim()).filter(Boolean);const d={title,company:document.getElementById('pubJobCompany').value,location:document.getElementById('pubJobLocation').value,salary:document.getElementById('pubJobSalary').value,desc:document.getElementById('pubJobDesc').value,skills:sk};try{if(id){await aput('public.php?type=jobs',{...d,id});Object.assign(S.pJobs.find(j=>+j.id===+id),d);}else{const r=await ap('public.php?type=jobs',d);S.pJobs.unshift({...d,id:r.id});}closeModal('pubJobModal');renderWebsite();toast('Saved');}catch(x){toast('Error: '+x.message);}}
+async function deletePubJob(id){if(!confirm('Remove?'))return;try{await adel('public.php?type=jobs&id='+id);S.pJobs=S.pJobs.filter(j=>+j.id!==+id);renderWebsite();toast('Removed');}catch(x){toast('Error: '+x.message);}}
+function editPubJob(id){openPubJobModal(id);}
+function openPubCandModal(id){const c=id?S.pCands.find(x=>+x.id===+id):null;document.getElementById('pubCandModalTitle').textContent=c?'Edit Profile':'Add Profile';document.getElementById('pubCandId').value=c?c.id:'';document.getElementById('pubCandName').value=c?c.name||'':'';document.getElementById('pubCandRole').value=c?c.role||'':'';document.getElementById('pubCandLocation').value=c?c.location||'':'';document.getElementById('pubCandExp').value=c?c.exp||c.experience||'':'';document.getElementById('pubCandSkills').value=(c&&c.skills?c.skills.join(', '):'');document.getElementById('pubCandHighlight').value=c?c.highlight||'':'';showModal('pubCandModal');}
+async function savePubCand(){const id=document.getElementById('pubCandId').value;const name=document.getElementById('pubCandName').value.trim();if(!name){toast('Name required');return;}const sk=document.getElementById('pubCandSkills').value.split(',').map(s=>s.trim()).filter(Boolean);const d={name,role:document.getElementById('pubCandRole').value,location:document.getElementById('pubCandLocation').value,exp:document.getElementById('pubCandExp').value,highlight:document.getElementById('pubCandHighlight').value,skills:sk};try{if(id){await aput('public.php?type=candidates',{...d,id});Object.assign(S.pCands.find(c=>+c.id===+id),d);}else{const r=await ap('public.php?type=candidates',d);S.pCands.unshift({...d,id:r.id});}closeModal('pubCandModal');renderWebsite();toast('Saved');}catch(x){toast('Error: '+x.message);}}
+async function deletePubCand(id){if(!confirm('Remove?'))return;try{await adel('public.php?type=candidates&id='+id);S.pCands=S.pCands.filter(c=>+c.id!==+id);renderWebsite();toast('Removed');}catch(x){toast('Error: '+x.message);}}
+function editPubCand(id){openPubCandModal(id);}
+</script>
+
+</body>
+</html>

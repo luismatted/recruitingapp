@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get in Touch - Crossing Education</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="style-v7.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Crossing Education" style="height:36px;width:auto;max-width:120px">
+      <div>Crossing<span>Education</span></div>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">&#9776;</button>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="jobs.html" class="nav-link">Find Jobs</a>
+      <a href="candidates.html" class="nav-link">Find Candidates</a>
+      <a href="submit.html" class="nav-link">Submit Profile</a>
+      <a href="about.html" class="nav-link">About</a>
+    </div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:100px;max-width:700px">
+  <div class="section-title">
+    <h2 id="pageTitle">Get in Touch</h2>
+    <p id="pageSubtitle">Send us a message and we will get back to you within 24 hours.</p>
+  </div>
+
+  <div id="contextBanner" style="display:none"></div>
+
+  <div id="formSuccess" class="status-msg success">&#10004; Message sent successfully! We will get back to you within 24 hours.</div>
+  <div id="formError" class="status-msg error"></div>
+
+  <div class="glass" style="padding:32px">
+    <form id="inquiryForm" onsubmit="return submitInquiry(event)">
+      <input type="hidden" name="subject" id="inquirySubject" value="General Inquiry">
+      <input type="hidden" name="context" id="inquiryContext" value="">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Your Name *</label>
+          <input type="text" name="name" class="form-input" placeholder="e.g. John Smith" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" name="email" class="form-input" placeholder="john@email.com" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" name="phone" class="form-input" placeholder="+65 1234 5678">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="companyLabel">Company Name</label>
+          <input type="text" name="company" class="form-input" placeholder="e.g. Acme Corp">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Message *</label>
+        <textarea name="message" id="messageField" class="form-textarea" placeholder="Tell us what you are looking for..." required></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center" id="submitBtn">&#9993; Send Message</button>
+    </form>
+  </div>
+
+  <div style="text-align:center;margin-top:20px">
+    <p style="color:var(--text3);font-size:14px;margin-bottom:12px">Prefer a quick chat?</p>
+    <a href="https://wa.me/15551234567" class="btn btn-outline" target="_blank" rel="noopener" style="gap:8px">&#128172; Message us on WhatsApp</a>
+  </div>
+</section>
+
+<footer class="footer" style="margin-top:40px">
+  <div class="footer-links">
+    <a href="index.html">Home</a><a href="jobs.html">Jobs</a><a href="candidates.html">Candidates</a><a href="submit.html">Submit</a><a href="about.html">About</a>
+  </div>
+  <p>&copy; 2025 Crossing Education. All rights reserved.</p>
+</footer>
+
+<script>
+function getParam(name){ return new URLSearchParams(location.search).get(name); }
+function escapeHtml(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+var jobId = getParam('job');
+var candidateId = getParam('candidate');
+var subjectText = 'General Inquiry';
+var contextText = '';
+var defaultMsg = '';
+
+if(jobId){
+  // Applying for a job - load from API
+  document.getElementById('pageTitle').textContent = 'Apply for This Role';
+  document.getElementById('pageSubtitle').textContent = 'Send us your details and we will connect you with the hiring team.';
+  document.getElementById('companyLabel').textContent = 'Current Company';
+  subjectText = 'Job Application';
+  defaultMsg = 'Hello,\n\nI am interested in applying for this position.\n\nPlease review my profile and let me know the next steps.\n\nThank you!';
+
+  // Try to load job details from API
+  fetch('api/public.php?type=jobs')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var jobs = data.jobs || [];
+      var job = jobs.find(function(j){return String(j.id)===jobId;});
+      if(job){
+        contextText = job.title + (job.company ? ' @ ' + job.company : '') + (job.location ? ' | ' + job.location : '');
+        subjectText = 'Job Application: ' + job.title;
+        document.getElementById('contextBanner').style.display = 'block';
+        document.getElementById('contextBanner').innerHTML =
+          '<div class="inquiry-context">' +
+          '<h3>&#128188; ' + escapeHtml(job.title) + '</h3>' +
+          '<p>' + (job.company ? escapeHtml(job.company) + ' &bull; ' : '') + escapeHtml(job.location || 'Location not specified') + '</p>' +
+          (job.salary ? '<p style="color:var(--accent);margin-top:4px">&#128176; ' + escapeHtml(job.salary) + '</p>' : '') +
+          '<span class="context-tag">You are applying as a candidate</span>' +
+          '</div>';
+      }
+      document.getElementById('inquirySubject').value = subjectText;
+      document.getElementById('inquiryContext').value = contextText;
+      document.getElementById('messageField').value = defaultMsg;
+    })
+    .catch(function(){
+      document.getElementById('inquirySubject').value = subjectText;
+      document.getElementById('messageField').value = defaultMsg;
+    });
+}
+else if(candidateId){
+  // Requesting a candidate profile
+  document.getElementById('pageTitle').textContent = 'Request Full Profile';
+  document.getElementById('pageSubtitle').textContent = 'Send us your details and we will share the candidate profile with you.';
+  document.getElementById('companyLabel').textContent = 'Your Company *';
+  document.querySelector('input[name="company"]').required = true;
+  subjectText = 'Profile Request';
+  defaultMsg = 'Hello,\n\nI am interested in learning more about this candidate for a potential role.\n\nCould you please share their full profile and contact details?\n\nThank you!';
+
+  fetch('api/public.php?type=candidates')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var cands = data.candidates || [];
+      var cand = cands.find(function(c){return String(c.id)===candidateId;});
+      if(cand){
+        contextText = cand.name + (cand.role ? ' - ' + cand.role : '') + (cand.location ? ' | ' + cand.location : '');
+        subjectText = 'Profile Request: ' + cand.name;
+        document.getElementById('contextBanner').style.display = 'block';
+        document.getElementById('contextBanner').innerHTML =
+          '<div class="inquiry-context">' +
+          '<h3>&#128100; ' + escapeHtml(cand.name) + '</h3>' +
+          '<p>' + (cand.role ? escapeHtml(cand.role) : 'Professional') + (cand.location ? ' &bull; ' + escapeHtml(cand.location) : '') + '</p>' +
+          (cand.exp ? '<p style="color:var(--accent);margin-top:4px">&#9201; ' + escapeHtml(cand.exp) + ' experience</p>' : '') +
+          '<span class="context-tag">You are requesting as a company</span>' +
+          '</div>';
+      }
+      document.getElementById('inquirySubject').value = subjectText;
+      document.getElementById('inquiryContext').value = contextText;
+      document.getElementById('messageField').value = defaultMsg;
+    })
+    .catch(function(){
+      document.getElementById('inquirySubject').value = subjectText;
+      document.getElementById('messageField').value = defaultMsg;
+    });
+}
+else {
+  // Generic inquiry
+  document.getElementById('inquirySubject').value = subjectText;
+  document.getElementById('messageField').value = 'Hello,\n\nI would like to learn more about your recruitment services.\n\nPlease let me know how we can work together.\n\nThank you!';
+}
+
+function submitInquiry(e){
+  e.preventDefault();
+  document.getElementById('formSuccess').style.display = 'none';
+  document.getElementById('formError').style.display = 'none';
+
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sending...';
+
+  // For now, show success. In a future phase, we can wire this to send emails or store in DB.
+  // The inquiry form works as a client-side demo showing context awareness.
+  setTimeout(function(){
+    document.getElementById('formSuccess').style.display = 'block';
+    document.getElementById('inquiryForm').style.display = 'none';
+    btn.disabled = false;
+    btn.innerHTML = '&#9993; Send Message';
+  }, 800);
+
+  return false;
+}
+</script>
+
+</body>
+</html>

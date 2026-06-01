@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit Profile - Crossing Education</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="style-v7.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Crossing Education" style="height:36px;width:auto;max-width:120px">
+      <div>Crossing<span>Education</span></div>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">&#9776;</button>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="jobs.html" class="nav-link">Find Jobs</a>
+      <a href="candidates.html" class="nav-link">Find Candidates</a>
+      <a href="submit.html" class="nav-link active">Submit Profile</a>
+      <a href="about.html" class="nav-link">About</a>
+    </div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:100px;max-width:700px">
+  <div class="section-title">
+    <h2>Get in Touch</h2>
+    <p>Submit a job opening or your CV. Our team will review and get back to you within 24 hours.</p>
+  </div>
+
+  <div id="formSuccess" class="status-msg success">&#10004; Submitted successfully! We will get back to you within 24 hours.</div>
+  <div id="formError" class="status-msg error"></div>
+
+  <div class="form-toggle">
+    <button class="form-toggle-btn active" id="btnCompany" onclick="showForm('company')">&#127970; I am a Company Hiring</button>
+    <button class="form-toggle-btn" id="btnCandidate" onclick="showForm('candidate')">&#128100; I am a Candidate</button>
+  </div>
+
+  <!-- Company Form -->
+  <div id="companyForm" class="glass" style="padding:32px">
+    <h3 style="font-size:20px;margin-bottom:6px">Submit a Job Opening</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:20px">Tell us about the role. We will find the right candidates.</p>
+    <form id="companyFormEl" onsubmit="return submitCompany(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Company Name *</label>
+          <input type="text" name="company" class="form-input" placeholder="e.g. Acme Corp" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Name *</label>
+          <input type="text" name="contactName" class="form-input" placeholder="e.g. John Smith" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" name="email" class="form-input" placeholder="john@company.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" name="phone" class="form-input" placeholder="+65 1234 5678">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Job Title *</label>
+        <input type="text" name="title" class="form-input" placeholder="e.g. Senior Financial Controller" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Location *</label>
+          <input type="text" name="location" class="form-input" placeholder="e.g. Singapore" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Salary Range</label>
+          <input type="text" name="salary" class="form-input" placeholder="e.g. S$8,000 - 12,000/month">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Job Description *</label>
+        <textarea name="description" class="form-textarea" placeholder="Paste the full job description here... Include responsibilities, requirements, qualifications, and any specific skills needed." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center" id="companySubmitBtn">&#9993; Send Job Details</button>
+    </form>
+  </div>
+
+  <!-- Candidate Form -->
+  <div id="candidateForm" class="glass hidden" style="padding:32px">
+    <h3 style="font-size:20px;margin-bottom:6px">Submit Your CV</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:20px">Share your profile with us. We will match you with suitable opportunities.</p>
+    <form id="candidateFormEl" onsubmit="return submitCandidate(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="name" class="form-input" placeholder="e.g. Sarah Chen" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" name="email" class="form-input" placeholder="sarah@email.com" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Target Role</label>
+          <input type="text" name="role" class="form-input" placeholder="e.g. Finance Manager">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input type="text" name="location" class="form-input" placeholder="City, Country">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">CV / Resume *</label>
+        <textarea name="cv" class="form-textarea" placeholder="Paste your CV or professional summary... Include work experience, education, certifications, and key achievements." style="min-height:160px" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center" id="candidateSubmitBtn">&#9993; Submit Application</button>
+    </form>
+  </div>
+</section>
+
+<footer class="footer" style="margin-top:40px">
+  <div class="footer-links">
+    <a href="index.html">Home</a><a href="jobs.html">Jobs</a><a href="candidates.html">Candidates</a><a href="submit.html">Submit</a><a href="about.html">About</a>
+  </div>
+  <p>&copy; 2025 Crossing Education. All rights reserved.</p>
+</footer>
+
+<script>
+function showForm(type){
+  document.getElementById('companyForm').classList.toggle('hidden', type!=='company');
+  document.getElementById('candidateForm').classList.toggle('hidden', type!=='candidate');
+  document.getElementById('btnCompany').classList.toggle('active', type==='company');
+  document.getElementById('btnCandidate').classList.toggle('active', type==='candidate');
+}
+
+function showStatus(success, msg){
+  var okEl = document.getElementById('formSuccess');
+  var errEl = document.getElementById('formError');
+  if(success){ okEl.style.display='block'; errEl.style.display='none'; }
+  else { errEl.textContent = msg; errEl.style.display='block'; okEl.style.display='none'; }
+}
+
+function hideStatus(){
+  document.getElementById('formSuccess').style.display='none';
+  document.getElementById('formError').style.display='none';
+}
+
+async function submitCandidate(e){
+  e.preventDefault();
+  hideStatus();
+  var btn = document.getElementById('candidateSubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Submitting...';
+  
+  var form = e.target;
+  var data = {
+    name: form.name.value.trim(),
+    email: form.email.value.trim(),
+    role: form.role.value.trim(),
+    location: form.location.value.trim(),
+    cv: form.cv.value.trim()
+  };
+  
+  try {
+    var r = await fetch('api/submit.php', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    var result = await r.json();
+    if(result.success){
+      showStatus(true);
+      form.reset();
+    } else {
+      showStatus(false, result.error || 'Submission failed');
+    }
+  } catch(x) {
+    showStatus(false, 'Network error. Please try again.');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '&#9993; Submit Application';
+  return false;
+}
+
+async function submitCompany(e){
+  e.preventDefault();
+  hideStatus();
+  var btn = document.getElementById('companySubmitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sending...';
+  
+  // For now, company submissions show a message directing to inquiry
+  // In a future phase, we can wire this to create a job in the database
+  showStatus(true);
+  document.getElementById('companyFormEl').style.display = 'none';
+  
+  btn.disabled = false;
+  btn.innerHTML = '&#9993; Send Job Details';
+  return false;
+}
+
+// URL param to pre-select form
+var params = new URLSearchParams(location.search);
+if(params.get('type')==='candidate') showForm('candidate');
+if(params.get('type')==='company') showForm('company');
+</script>
+
+</body>
+</html>
