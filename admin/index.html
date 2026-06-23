@@ -982,6 +982,32 @@ function updateChatContext(){document.getElementById('chatContext').textContent=
 function quickChat(t){document.getElementById('chatInput').value=t;document.getElementById('chatInput').focus();}
 
 function buildSysPrompt(){
+  // Track which job was most recently mentioned in chat
+  const recentUserMsgs=chatHist.filter(m=>m.role==='user').slice(-6);
+  let lastJob=null;
+  for(const msg of recentUserMsgs){
+    const t=msg.text.toLowerCase();
+    const matchedJob=S.jobs.find(j=>{
+      const jt=(j.title||'').toLowerCase();
+      const jc=(j.company||'').toLowerCase();
+      return t.includes(jt)||t.includes(jc)||t.includes('this job')||t.includes('that job')||t.includes('the position');
+    });
+    if(matchedJob){lastJob=matchedJob;break;}
+  }
+  // Also check if user said "tax manager" or similar role keywords
+  if(!lastJob){
+    for(const msg of recentUserMsgs){
+      const t=msg.text.toLowerCase();
+      const matchedJob=S.jobs.find(j=>{
+        const titleWords=(j.title||'').toLowerCase().split(' ').filter(w=>w.length>3);
+        return titleWords.some(w=>t.includes(w));
+      });
+      if(matchedJob){lastJob=matchedJob;break;}
+    }
+  }
+  // Update global tracking
+  if(lastJob)_lastDiscussedJobId=lastJob.id;
+  
   const jx=S.jobs.map(j=>`Job #${j.id}: ${j.title} @${j.company||'?'} | ${j.location||'?'} | ${j.seniority||'?'} | ${j.industry||'?'} [${j.status}]
 Skills: ${(j.skills||[]).join(', ')}
 Lang: ${j.languageRequirements||'?'}
@@ -997,18 +1023,20 @@ RULES:
 - Explain in 2-3 sentences max
 - ALWAYS extract ALL possible fields from CVs and JDs (skills, seniority, languages, industry, etc.)
 
-SCREENING FORMAT — MUST follow this exactly:
+MOST RECENTLY DISCUSSED JOB: ${lastJob?lastJob.title+' (ID:'+lastJob.id+')':'None detected. Use linkedJobId:0 for first job.'}
+
+SCREENING FORMAT — You MUST include ALL four sections:
 **Score: X/100**
 **Verdict: YES/MAYBE/NO**
-**Why they fit:** [2-3 sentences on strengths]
-**Why not 100%:** [1-2 sentences on specific gaps — experience level, missing skills, no Big 4, language limitations, etc. — be honest about gaps]
+**Why they fit:** [specific strengths with evidence from CV]
+**Why not 100%:** [MUST mention specific gaps. Examples: "Only 3 years vs 5+ required", "No team management experience yet", "Lacks Big 4 audit background", "Strong technically but limited German for client-facing role", "Good fundamentals but no cross-border M&A exposure"]
 
 AFTER SCREENING — Always ask:
-"Would you like me to add this candidate to the database and link them to [job title]?"
+"Would you like me to add this candidate to the database and link them to ${lastJob?lastJob.title:'this job'}?"
 
-WHEN USER SAYS YES — IMMEDIATELY call the createCandidate tool with ALL details from the CV. Do NOT ask follow-up questions. Do NOT say "I'll add them." Just CALL THE TOOL right away.
+WHEN USER SAYS YES — IMMEDIATELY call the createCandidate tool with ALL details from the CV. Then call the screenCandidate tool to save the screening.
 
-CRITICAL: When creating a candidate with linkedJobId:0, the system will auto-link to the most recently discussed job.
+CRITICAL: When creating a candidate with linkedJobId:0, the system will auto-link to job ID:${lastJob?lastJob.id:'first job'}.
 
 INTERNAL JOBS (${S.jobs.length}):
 ${jx||'(none)'}
@@ -1093,9 +1121,9 @@ let _lastJobId=null,_lastCandId=null,_lastDiscussedJobId=null;
 
 async function execAction(a){
   const d=a.data;
-  // Resolve linkedJobId:0 to actual job
+  // Resolve linkedJobId:0 to actual job based on recent chat context
   if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
-  if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id;
+  else if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id; // fallback: first job
   if(d.linkedJobId===-1)d.linkedJobId=null;
   
   if(a.type==='createJob'){
@@ -1107,7 +1135,18 @@ async function execAction(a){
     const r=await ap('candidates.php',d);_lastCandId=r.id;
     if(d.linkedJobId)_lastDiscussedJobId=d.linkedJobId;
     S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});
-    renderCandList();updateDash();updateChatContext();return`Candidate "${d.name}" added (ID:${r.id})${d.linkedJobId?' linked to job #'+d.linkedJobId:''}`;
+    renderCandList();updateDash();updateChatContext();
+    // Auto-screen if linked to a job
+    if(d.linkedJobId){
+      try{
+        toast('Auto-screening candidate...');
+        const result=await doScreening(r.id);
+        return`Candidate "${d.name}" added (ID:${r.id}) linked to job #${d.linkedJobId}. Screened: ${result.verdict} (${result.score}%)`;
+      }catch(screenErr){
+        return`Candidate "${d.name}" added (ID:${r.id}) linked to job #${d.linkedJobId}. Screening failed: ${screenErr.message}`;
+      }
+    }
+    return`Candidate "${d.name}" added (ID:${r.id})`;
   }
   if(a.type==='screenCandidate'){
     const cid=+d.candidateId||_lastCandId;
