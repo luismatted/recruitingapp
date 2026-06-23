@@ -32,6 +32,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .login-btn:hover{filter:brightness(1.1)}
 .login-btn:disabled{opacity:.5;cursor:not-allowed}
 .login-hint{font-size:.75rem;color:var(--text3);margin-top:12px}
+.login-remember{display:flex;align-items:center;gap:8px;margin-bottom:16px;color:var(--text2);font-size:.85rem;cursor:pointer;justify-content:center}
+.login-remember input{width:16px;height:16px;cursor:pointer;accent-color:var(--gold)}
 
 /* Layout */
 #app{display:none;height:100vh;flex-direction:column}
@@ -109,7 +111,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 /* Modals */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
 .mo.show{display:flex}
-.md{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.md{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.md.wide{max-width:720px}
 .mh{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .mt{font-weight:700;color:var(--text);font-size:1rem}
 .mb{padding:20px;overflow-y:auto;flex:1}
@@ -122,6 +125,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .inp{width:100%;padding:9px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:.87rem;outline:none;font-family:inherit;transition:border-color .15s}
 .inp:focus{border-color:var(--gold)}
 select.inp{cursor:pointer}
+textarea.inp{resize:vertical;min-height:60px}
 
 /* Chat */
 .cw{display:flex;flex-direction:column;height:calc(100vh - 130px)}
@@ -187,6 +191,10 @@ select.inp{cursor:pointer}
     <div class="login-error" id="loginError"></div>
     <form id="loginForm">
       <input type="password" class="login-input" id="loginPw" placeholder="Enter password" autocomplete="current-password" autofocus>
+      <label class="login-remember">
+        <input type="checkbox" id="loginRemember" checked>
+        Remember me for 30 days
+      </label>
       <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
     </form>
     <p class="login-hint">Default password: talent2025</p>
@@ -335,16 +343,15 @@ select.inp{cursor:pointer}
       <div class="em" style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;justify-content:center">
         <div style="font-size:3rem">&#129302;</div>
         <div style="font-weight:700;color:var(--text)">TalentAI Assistant</div>
-        <div style="font-size:.85rem;color:var(--text2);max-width:320px;text-align:center">Ask about jobs, candidates, or tell me to create records. I remember our full conversation.</div>
+        <div style="font-size:.85rem;color:var(--text2);max-width:320px;text-align:center">Paste a CV or JD and I'll parse, score, and save everything. I handle the data entry.</div>
         <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:360px;margin-top:8px">
-          <button class="btn btn-g btn-sm" onclick="quickChat('Add a job: Finance Manager at ABC Corp, Singapore, S$8k-12k/month')" style="justify-content:flex-start;font-size:.8rem">&#128188; "Add job: Finance Manager at ABC Corp"</button>
-          <button class="btn btn-g btn-sm" onclick="quickChat('Which candidates have the highest screening scores?')" style="justify-content:flex-start;font-size:.8rem">&#128100; "Which candidates scored highest?"</button>
-          <button class="btn btn-g btn-sm" onclick="quickChat('Screen candidate #1 against job #2')" style="justify-content:flex-start;font-size:.8rem">&#9889; "Screen candidate against job"</button>
+          <button class="btn btn-g btn-sm" onclick="quickChat('Add job: paste JD here')" style="justify-content:flex-start;font-size:.8rem">&#128188; "Add job: paste JD here"</button>
+          <button class="btn btn-g btn-sm" onclick="quickChat('Add candidate: paste CV here')" style="justify-content:flex-start;font-size:.8rem">&#128100; "Add candidate: paste CV here"</button>
         </div>
       </div>
     </div>
     <div class="cf">
-      <textarea class="cin" id="chatInput" rows="1" placeholder="Ask anything... Shift+Enter for new line"></textarea>
+      <textarea class="cin" id="chatInput" rows="1" placeholder="Paste a CV, JD, or ask anything... Shift+Enter for new line"></textarea>
       <button class="btn btn-p" id="sendBtn" onclick="sendChat()" style="height:44px;padding:0 16px">Send</button>
     </div>
     <div style="font-size:.72rem;color:var(--text3);text-align:center;margin-top:6px">Enter to send &middot; Shift+Enter for new line &middot; <button onclick="clearChatHistory()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.72rem">Clear Chat</button></div>
@@ -354,13 +361,35 @@ select.inp{cursor:pointer}
 <!-- SETTINGS -->
 <div class="pn" id="pn-settings">
   <div class="stc">
-    <h3>&#9881; OpenAI API Key</h3>
-    <p>Required for AI screening and chat. Stored in your browser only.</p>
+    <h3>&#9881; AI Provider</h3>
+    <p>Choose your AI engine. Kimi (Moonshot) works without VPN in China.</p>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <select class="inp" id="aiProvider" onchange="onProviderChange()">
+        <option value="openai">OpenAI (GPT-4o-mini)</option>
+        <option value="kimi">Kimi (Moonshot)</option>
+      </select>
+    </div>
     <div style="display:flex;gap:8px">
-      <input type="password" class="inp" id="settingKey" placeholder="sk-..." style="flex:1">
-      <button class="btn btn-p btn-sm" onclick="saveKey()">Save</button>
+      <input type="password" class="inp" id="aiKey" placeholder="sk-... or kimi-..." style="flex:1">
+      <button class="btn btn-p btn-sm" onclick="saveAiSettings()">Save</button>
+    </div>
+    <div style="font-size:.78rem;color:var(--text3);margin-top:6px" id="aiHelp">
+      OpenAI: get key from platform.openai.com<br>
+      Kimi: get key from platform.moonshot.cn
     </div>
     <div id="keyStatus" style="font-size:.78rem;margin-top:6px;color:var(--green)"></div>
+  </div>
+  <div class="stc">
+    <h3>&#9881; Session Timeout</h3>
+    <p>Admin session expires after this time. Requires re-login.</p>
+    <select class="inp" id="sessionTimeout" onchange="saveSessionTimeout()">
+      <option value="3600000">1 hour</option>
+      <option value="14400000">4 hours</option>
+      <option value="86400000">24 hours</option>
+      <option value="604800000">7 days</option>
+      <option value="2592000000" selected>30 days</option>
+    </select>
+    <div id="sessionStatus" style="font-size:.78rem;margin-top:6px;color:var(--green)"></div>
   </div>
   <div class="stc">
     <h3>&#128241; WhatsApp Number</h3>
@@ -401,16 +430,14 @@ select.inp{cursor:pointer}
     <div class="mh"><span class="mt" id="jobModalTitle">Add Job</span><button class="btn-ic" onclick="closeModal('jobModal')">&#10005;</button></div>
     <div class="mb">
       <input type="hidden" id="jobId">
-      <div class="fr">
-        <div class="fg"><label>Title *</label><input type="text" class="inp" id="jobTitle"></div>
-        <div class="fg"><label>Company</label><input type="text" class="inp" id="jobCompany"></div>
-      </div>
-      <div class="fr">
-        <div class="fg"><label>Location</label><input type="text" class="inp" id="jobLocation"></div>
-        <div class="fg"><label>Salary</label><input type="text" class="inp" id="jobSalary"></div>
-      </div>
-      <div class="fg"><label>Status</label><select class="inp" id="jobStatus"><option value="active">Active</option><option value="draft">Draft</option><option value="closed">Closed</option></select></div>
-      <div class="fg"><label>Description</label><textarea class="inp" id="jobDesc" rows="5" style="resize:vertical"></textarea></div>
+      <div class="fr"><div class="fg"><label>Title *</label><input type="text" class="inp" id="jobTitle"></div><div class="fg"><label>Company</label><input type="text" class="inp" id="jobCompany"></div></div>
+      <div class="fr"><div class="fg"><label>Location</label><input type="text" class="inp" id="jobLocation"></div><div class="fg"><label>Salary</label><input type="text" class="inp" id="jobSalary"></div></div>
+      <div class="fr"><div class="fg"><label>Seniority</label><select class="inp" id="jobSeniority"><option value="">- Select -</option><option value="Junior">Junior</option><option value="Mid">Mid-level</option><option value="Senior">Senior</option><option value="Executive">Executive</option></select></div><div class="fg"><label>Job Type</label><select class="inp" id="jobType"><option value="">- Select -</option><option value="Full-time">Full-time</option><option value="Contract">Contract</option><option value="Part-time">Part-time</option></select></div></div>
+      <div class="fr"><div class="fg"><label>Industry</label><input type="text" class="inp" id="jobIndustry" placeholder="e.g. Finance, Manufacturing"></div><div class="fg"><label>Language Requirements</label><input type="text" class="inp" id="jobLang" placeholder="e.g. German (required), English"></div></div>
+      <div class="fg"><label>Skills (comma-separated)</label><input type="text" class="inp" id="jobSkills" placeholder="SAP, GL, IFRS, Tax..."></div>
+      <div class="fg"><label>Description *</label><textarea class="inp" id="jobDesc" rows="4" placeholder="Full job description..."></textarea></div>
+      <div class="fg"><label>Requirements</label><textarea class="inp" id="jobReqs" rows="3" placeholder="Key requirements..."></textarea></div>
+      <div class="fr"><div class="fg"><label>Status</label><select class="inp" id="jobStatus"><option value="active">Active</option><option value="draft">Draft</option><option value="closed">Closed</option></select></div></div>
     </div>
     <div class="mf"><button class="btn btn-g" onclick="closeModal('jobModal')">Cancel</button><button class="btn btn-p" id="jobSaveBtn" onclick="saveJob()">Save</button></div>
   </div>
@@ -418,23 +445,20 @@ select.inp{cursor:pointer}
 
 <!-- Candidate Modal -->
 <div class="mo" id="candModal">
-  <div class="md">
+  <div class="md wide">
     <div class="mh"><span class="mt" id="candModalTitle">Add Candidate</span><button class="btn-ic" onclick="closeModal('candModal')">&#10005;</button></div>
     <div class="mb">
       <input type="hidden" id="candId">
-      <div class="fr">
-        <div class="fg"><label>Full Name *</label><input type="text" class="inp" id="candName"></div>
-        <div class="fg"><label>Current Role</label><input type="text" class="inp" id="candRole"></div>
-      </div>
-      <div class="fr">
-        <div class="fg"><label>Company</label><input type="text" class="inp" id="candCompany"></div>
-        <div class="fg"><label>Location</label><input type="text" class="inp" id="candLoc"></div>
-      </div>
-      <div class="fr">
-        <div class="fg"><label>Linked Job</label><select class="inp" id="candLinkedJob"><option value="">- None -</option></select></div>
-        <div class="fg"><label>Stage</label><select class="inp" id="candStage"><option value="PENDING">Pending</option><option value="SUBMITTED">Submitted</option><option value="SCREENING">Screening</option><option value="INTERVIEW">Interview</option><option value="OFFER">Offer</option><option value="HIRED">Hired</option><option value="REJECTED">Rejected</option></select></div>
-      </div>
-      <div class="fg"><label>CV / Resume Text</label><textarea class="inp" id="candCv" rows="5" style="resize:vertical" placeholder="Paste CV here..."></textarea></div>
+      <div class="fr"><div class="fg"><label>Full Name *</label><input type="text" class="inp" id="candName"></div><div class="fg"><label>Current Role</label><input type="text" class="inp" id="candRole"></div></div>
+      <div class="fr"><div class="fg"><label>Company</label><input type="text" class="inp" id="candCompany"></div><div class="fg"><label>Location</label><input type="text" class="inp" id="candLoc"></div></div>
+      <div class="fr"><div class="fg"><label>Email</label><input type="text" class="inp" id="candEmail"></div><div class="fg"><label>Phone</label><input type="text" class="inp" id="candPhone"></div></div>
+      <div class="fr"><div class="fg"><label>LinkedIn</label><input type="text" class="inp" id="candLinkedIn"></div><div class="fg"><label>Seniority</label><select class="inp" id="candSeniority"><option value="">- Select -</option><option value="Junior">Junior</option><option value="Mid">Mid-level</option><option value="Senior">Senior</option><option value="Executive">Executive</option></select></div></div>
+      <div class="fr"><div class="fg"><label>Experience</label><input type="text" class="inp" id="candExp" placeholder="e.g. 5+ years"></div><div class="fg"><label>Notice Period</label><input type="text" class="inp" id="candNotice" placeholder="e.g. 3 months"></div></div>
+      <div class="fr"><div class="fg"><label>Industry</label><input type="text" class="inp" id="candIndustry" placeholder="e.g. Finance"></div><div class="fg"><label>Salary Expectation</label><input type="text" class="inp" id="candSalary" placeholder="e.g. 80k EUR"></div></div>
+      <div class="fr"><div class="fg"><label>Availability</label><select class="inp" id="candAvail"><option value="">- Select -</option><option value="Immediate">Immediate</option><option value="1 month">1 month</option><option value="2 months">2 months</option><option value="3 months">3 months</option></select></div><div class="fg"><label>Languages</label><input type="text" class="inp" id="candLangs" placeholder="e.g. German (native), English (fluent)"></div></div>
+      <div class="fg"><label>Skills (comma-separated)</label><input type="text" class="inp" id="candSkills" placeholder="SAP, Tax, GL, IFRS..."></div>
+      <div class="fr"><div class="fg"><label>Linked Job</label><select class="inp" id="candLinkedJob"><option value="">- None -</option></select></div><div class="fg"><label>Stage</label><select class="inp" id="candStage"><option value="PENDING">Pending</option><option value="SUBMITTED">Submitted</option><option value="SCREENING">Screening</option><option value="INTERVIEW">Interview</option><option value="OFFER">Offer</option><option value="HIRED">Hired</option><option value="REJECTED">Rejected</option></select></div></div>
+      <div class="fg"><label>CV / Resume Text *</label><textarea class="inp" id="candCv" rows="4" style="resize:vertical" placeholder="Paste full CV here..."></textarea></div>
     </div>
     <div class="mf"><button class="btn btn-g" onclick="closeModal('candModal')">Cancel</button><button class="btn btn-p" id="candSaveBtn" onclick="saveCand()">Save</button></div>
   </div>
@@ -489,15 +513,31 @@ select.inp{cursor:pointer}
   </div>
 </div>
 
+<!-- Edit Screening Modal -->
+<div class="mo" id="screenModal">
+  <div class="md" style="max-width:440px">
+    <div class="mh"><span class="mt">Edit Screening</span><button class="btn-ic" onclick="closeModal('screenModal')">&#10005;</button></div>
+    <div class="mb">
+      <input type="hidden" id="screenCandId">
+      <div class="fg"><label>Verdict</label><select class="inp" id="screenVerdict"><option value="YES">YES</option><option value="MAYBE">MAYBE</option><option value="NO">NO</option></select></div>
+      <div class="fg"><label>Score (0-100)</label><input type="number" class="inp" id="screenScore" min="0" max="100"></div>
+      <div class="fg"><label>Rationale</label><textarea class="inp" id="screenRationale" rows="3"></textarea></div>
+      <div class="fg"><label>Key Strength / Gap</label><input type="text" class="inp" id="screenStrength"></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="closeModal('screenModal')">Cancel</button><button class="btn btn-p" onclick="saveScreening()">Save</button></div>
+  </div>
+</div>
+
 <script>
 // ==================== CONFIG ====================
 const API='../api';
 const AUTH_KEY='ce_admin_auth';
 const CHAT_KEY='ce_admin_chat_v1';
-const OAI_KEY='ce_openai_key';
+const AI_KEY='ce_ai_key';
+const AI_PROVIDER_KEY='ce_ai_provider';
+const SESSION_KEY='ce_session_expires';
 
-let authHash=localStorage.getItem(AUTH_KEY)||'';
-let oaiKey=localStorage.getItem(OAI_KEY)||'';
+let authHash='',oaiKey='',aiProvider='openai';
 let S={jobs:[],candidates:[],pJobs:[],pCands:[]};
 let selJob=null,selCand=null,chatHist=[];
 
@@ -516,24 +556,54 @@ function showModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');}));
 
-// ==================== AUTH ====================
+// ==================== AUTH WITH SESSION MANAGEMENT ====================
+function getSessionStorage(){
+  // Use localStorage if remember me, sessionStorage otherwise
+  const remembered=localStorage.getItem(AUTH_KEY+'_remember')==='1';
+  return remembered?localStorage:sessionStorage;
+}
+function isSessionValid(){
+  const expires=localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY);
+  if(!expires)return false;
+  return Date.now()<parseInt(expires);
+}
+function setSession(remember){
+  const timeout=parseInt(document.getElementById('sessionTimeout')?.value||'2592000000');
+  const expires=Date.now()+timeout;
+  if(remember){
+    localStorage.setItem(AUTH_KEY+'_remember','1');
+    localStorage.setItem(AUTH_KEY,authHash);
+    localStorage.setItem(SESSION_KEY,String(expires));
+  }else{
+    localStorage.removeItem(AUTH_KEY+'_remember');
+    localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.setItem(AUTH_KEY,authHash);
+    sessionStorage.setItem(SESSION_KEY,String(expires));
+  }
+}
 document.getElementById('loginForm').addEventListener('submit',async function(e){
   e.preventDefault();
   const pw=document.getElementById('loginPw').value;
   const btn=document.getElementById('loginBtn');
   const err=document.getElementById('loginError');
+  const remember=document.getElementById('loginRemember').checked;
   if(!pw){err.textContent='Please enter a password';err.style.display='block';return;}
   err.style.display='none';btn.disabled=true;btn.innerHTML='<span class="sp"></span> Signing in...';
   const hash=hp(pw);
   try{
     const r=await fetch(`${API}/auth.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hash})});
     const d=await r.json();
-    if(d.authenticated){authHash=hash;localStorage.setItem(AUTH_KEY,hash);initApp();}
+    if(d.authenticated){authHash=hash;setSession(remember);initApp();}
     else{err.textContent='Incorrect password. Default is: talent2025';err.style.display='block';}
   }catch(x){err.textContent='Error: '+x.message;err.style.display='block';}
   btn.disabled=false;btn.textContent='Sign In';
 });
-function logout(){localStorage.removeItem(AUTH_KEY);authHash='';location.reload();}
+function logout(){
+  localStorage.removeItem(AUTH_KEY);localStorage.removeItem(AUTH_KEY+'_remember');localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(AUTH_KEY);sessionStorage.removeItem(SESSION_KEY);
+  authHash='';location.reload();
+}
 
 // ==================== INIT ====================
 async function initApp(){
@@ -546,21 +616,23 @@ async function refreshAll(){
     const[j,c]=await Promise.all([ag('jobs.php'),ag('candidates.php')]);
     S.jobs=Array.isArray(j.jobs)?j.jobs:[];
     S.candidates=Array.isArray(c.candidates)?c.candidates:[];
-    // Public data (no auth needed)
     try{const pj=await fetch(`${API}/public.php?type=jobs`).then(r=>r.json());S.pJobs=Array.isArray(pj.jobs)?pj.jobs:[];}catch(e){S.pJobs=[];}
     try{const pc=await fetch(`${API}/public.php?type=candidates`).then(r=>r.json());S.pCands=Array.isArray(pc.candidates)?pc.candidates:[];}catch(e){S.pCands=[];}
     updateDash();renderJobList();renderCandList();renderScreenings();renderWebsite();updateChatContext();
-    toast('Refreshed');
   }catch(x){toast('Refresh error: '+x.message);}
 }
 
-// Boot check
-if(authHash){
-  fetch(`${API}/auth.php?auth=${encodeURIComponent(authHash)}`)
-    .then(r=>r.json())
-    .then(d=>{if(d&&d.authenticated)initApp();else{localStorage.removeItem(AUTH_KEY);authHash='';}})
-    .catch(()=>{});
-}
+// Boot check - try sessionStorage first, then localStorage
+(function boot(){
+  const fromSS=sessionStorage.getItem(AUTH_KEY);
+  const fromLS=localStorage.getItem(AUTH_KEY);
+  authHash=fromSS||fromLS||'';
+  if(authHash&&isSessionValid()){
+    fetch(`${API}/auth.php?auth=${encodeURIComponent(authHash)}`).then(r=>r.json()).then(d=>{
+      if(d&&d.authenticated){initApp();}else{authHash='';}
+    }).catch(()=>{});
+  }
+})();
 
 // ==================== NAV ====================
 function switchPanel(p){
@@ -604,9 +676,15 @@ function renderJobDetail(){
   const el=document.getElementById('jobDetailBox');
   if(!selJob){el.innerHTML='<div class="de"><div><div style="font-size:3rem">&#128188;</div><p>Select a job</p></div></div>';return;}
   const j=selJob;const cc=S.candidates.filter(c=>+c.linkedJobId===+j.id);
-  el.innerHTML=`<div class="da"><button class="btn btn-p btn-sm" onclick="openJobModal(${j.id})">&#9998; Edit</button><button class="btn btn-d btn-sm" onclick="deleteJob(${j.id})">&#128465; Delete</button><button class="btn btn-s btn-sm" onclick="publishJob(${j.id})">&#127760; Publish</button></div>
+  const sk=(j.skills||[]).join(', ');
+  el.innerHTML=`<div class="da"><button class="btn btn-p btn-sm" onclick="openJobModal(${j.id})">&#9998; Edit</button><button class="btn btn-s btn-sm" onclick="publishJob(${j.id})">&#127760; Publish</button><button class="btn btn-d btn-sm" onclick="deleteJob(${j.id})">&#128465; Delete</button></div>
   <div class="ds"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:1.1rem;font-weight:700;color:var(--text)">${esc(j.title)}</div><div style="color:var(--text2);margin-top:3px">${[esc(j.company||''),esc(j.location||''),esc(j.salary||'')].filter(Boolean).join(' &bull; ')}</div></div><span class="bd ${j.status==='active'?'bd-g':j.status==='draft'?'bd-gr':'bd-r'}">${esc(j.status)}</span></div></div>
+  ${j.seniority?`<div class="ds"><div class="dl">Seniority</div><div class="dv">${esc(j.seniority)} &bull; ${esc(j.jobType||'Full-time')}</div></div>`:''}
+  ${j.industry?`<div class="ds"><div class="dl">Industry</div><div class="dv">${esc(j.industry)}</div></div>`:''}
+  ${sk?`<div class="ds"><div class="dl">Skills</div><div class="dv">${esc(sk)}</div></div>`:''}
+  ${j.languageRequirements?`<div class="ds"><div class="dl">Languages</div><div class="dv">${esc(j.languageRequirements)}</div></div>`:''}
   ${j.description?`<div class="ds"><div class="dl">Description</div><div class="dv rich-desc">${j.description}</div></div>`:''}
+  ${j.requirements?`<div class="ds"><div class="dl">Requirements</div><div class="dv">${esc(j.requirements)}</div></div>`:''}
   <div class="ds"><div class="dl">Linked Candidates (${cc.length})</div>${cc.map(c=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--bg3)"><span style="font-size:.84rem">${esc(c.name)}</span>${c.screeningScore!=null?`<span class="bd ${+c.screeningScore>=75?'bd-g':+c.screeningScore>=50?'bd-y':'bd-r'}">${c.screeningScore}%</span>`:'<span class="bd bd-gr">Unscreened</span>'}</div>`).join('')||'<div style="color:var(--text3);font-size:.84rem;padding-top:4px">None</div>'}</div>`;
 }
 function openJobModal(id){
@@ -617,8 +695,14 @@ function openJobModal(id){
   document.getElementById('jobCompany').value=j?j.company||'' : '';
   document.getElementById('jobLocation').value=j?j.location||'' : '';
   document.getElementById('jobSalary').value=j?j.salary||'' : '';
+  document.getElementById('jobSeniority').value=j?j.seniority||'' : '';
+  document.getElementById('jobType').value=j?j.jobType||'' : '';
+  document.getElementById('jobIndustry').value=j?j.industry||'' : '';
+  document.getElementById('jobLang').value=j?j.languageRequirements||'' : '';
+  document.getElementById('jobSkills').value=(j&&j.skills?j.skills.join(', '):'');
+  document.getElementById('jobDesc').value=j?j.description||'' : '';
+  document.getElementById('jobReqs').value=j?j.requirements||'' : '';
   document.getElementById('jobStatus').value=j?j.status||'active':'active';
-  document.getElementById('jobDesc').value=j?stripHtml(j.description)||'' : '';
   showModal('jobModal');
   setTimeout(()=>document.getElementById('jobTitle').focus(),50);
 }
@@ -628,8 +712,9 @@ async function saveJob(){
   const title=document.getElementById('jobTitle').value.trim();
   if(!title){toast('Title required');return;}
   const btn=document.getElementById('jobSaveBtn');btn.disabled=true;btn.innerHTML='<span class="sp"></span>';
-  const d={title,company:document.getElementById('jobCompany').value,location:document.getElementById('jobLocation').value,salary:document.getElementById('jobSalary').value,description:document.getElementById('jobDesc').value,status:document.getElementById('jobStatus').value};
-  try{if(id){await aput('jobs.php',{...d,id});Object.assign(S.jobs.find(j=>+j.id===+id),d);if(selJob&&+selJob.id===+id){selJob={...selJob,...d};renderJobDetail();}}else{const r=await ap('jobs.php',d);S.jobs.unshift({...d,id:r.id,createdAt:new Date().toISOString()});}
+  const skills=document.getElementById('jobSkills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const d={title,company:document.getElementById('jobCompany').value,location:document.getElementById('jobLocation').value,salary:document.getElementById('jobSalary').value,description:document.getElementById('jobDesc').value,requirements:document.getElementById('jobReqs').value,seniority:document.getElementById('jobSeniority').value,jobType:document.getElementById('jobType').value,industry:document.getElementById('jobIndustry').value,languageRequirements:document.getElementById('jobLang').value,skills,status:document.getElementById('jobStatus').value};
+  try{if(id){await aput('jobs.php',{...d,id});Object.assign(S.jobs.find(j=>+j.id===+id),d);if(selJob&&+selJob.id===+id){selJob={...selJob,...d};renderJobDetail();}}else{const r=await ap('jobs.php',d);S.jobs.unshift({...d,id:r.id,status:'active',createdAt:new Date().toISOString()});}
   closeModal('jobModal');renderJobList();updateDash();updateChatContext();toast(id?'Updated':'Created');}catch(x){toast('Error: '+x.message);}
   btn.disabled=false;btn.textContent='Save';
 }
@@ -641,7 +726,10 @@ function renderCandList(){
   const fl=S.candidates.filter(c=>!q||(c.name||'').toLowerCase().includes(q)||(c.currentRole||'').toLowerCase().includes(q));
   const b=document.getElementById('candListBox');
   if(!fl.length){b.innerHTML='<div class="em">No candidates</div>';return;}
-  b.innerHTML=fl.map(c=>`<div class="li${selCand&&selCand.id==c.id?' sel':''}" onclick="selectCand(${c.id})"><div style="flex:1;min-width:0"><div class="lit">${esc(c.name)}</div><div class="lis">${esc(c.currentRole||'')}${c.currentCompany?' at '+esc(c.currentCompany):''}</div><div style="margin-top:3px;display:flex;gap:3px;flex-wrap:wrap">${c.screeningScore!=null?`<span class="bd ${+c.screeningScore>=75?'bd-g':+c.screeningScore>=50?'bd-y':'bd-r'}">${c.screeningScore}% ${c.screeningVerdict||''}</span>`:''}${c.stage?`<span class="bd bd-b">${esc(c.stage)}</span>`:''}</div></div><div style="display:flex;gap:2px;flex-shrink:0">${c.screeningScore==null?`<button class="btn-ic" onclick="event.stopPropagation();screenCand(${c.id})" title="AI Screen">&#9889;</button>`:''}<button class="btn-ic" onclick="event.stopPropagation();openCandModal(${c.id})">&#9998;</button><button class="btn-ic" onclick="event.stopPropagation();deleteCand(${c.id})">&#128465;</button></div></div>`).join('');
+  b.innerHTML=fl.map(c=>{
+    const linkedJob=S.jobs.find(j=>+j.id===+c.linkedJobId);
+    return`<div class="li${selCand&&selCand.id==c.id?' sel':''}" onclick="selectCand(${c.id})"><div style="flex:1;min-width:0"><div class="lit">${esc(c.name)}</div><div class="lis">${esc(c.currentRole||'')}${c.currentCompany?' at '+esc(c.currentCompany):''}${linkedJob?' &rarr; '+esc(linkedJob.title):''}</div><div style="margin-top:3px;display:flex;gap:3px;flex-wrap:wrap">${c.screeningScore!=null?`<span class="bd ${+c.screeningScore>=75?'bd-g':+c.screeningScore>=50?'bd-y':'bd-r'}">${c.screeningScore}% ${c.screeningVerdict||''}</span>`:''}${c.stage?`<span class="bd bd-b">${esc(c.stage)}</span>`:''}</div></div><div style="display:flex;gap:2px;flex-shrink:0"><button class="btn-ic" onclick="event.stopPropagation();openCandModal(${c.id})">&#9998;</button><button class="btn-ic" onclick="event.stopPropagation();deleteCand(${c.id})">&#128465;</button></div></div>`;
+  }).join('');
 }
 function selectCand(id){selCand=S.candidates.find(c=>+c.id===+id);renderCandList();renderCandDetail();}
 function renderCandDetail(){
@@ -649,8 +737,19 @@ function renderCandDetail(){
   if(!selCand){el.innerHTML='<div class="de"><div><div style="font-size:3rem">&#128100;</div><p>Select a candidate</p></div></div>';return;}
   const c=selCand;const job=S.jobs.find(j=>+j.id===+c.linkedJobId);
   const sc=+c.screeningScore||0;const col=sc>=75?'var(--green)':sc>=50?'var(--gold)':'var(--red)';
-  el.innerHTML=`<div class="da"><button class="btn btn-p btn-sm" onclick="openCandModal(${c.id})">&#9998; Edit</button>${c.screeningScore==null?`<button class="btn btn-s btn-sm" onclick="screenCand(${c.id})">&#9889; Screen</button>`:''}${c.screeningVerdict==='YES'?`<button class="btn btn-g btn-sm" onclick="publishCand(${c.id})">&#127760; Publish</button>`:''}<button class="btn btn-d btn-sm" onclick="deleteCand(${c.id})">&#128465; Delete</button></div>
+  const skills=(c.skills||[]).join(', ');
+  el.innerHTML=`<div class="da">
+    <button class="btn btn-p btn-sm" onclick="openCandModal(${c.id})">&#9998; Edit</button>
+    ${c.linkedJobId&&job?`<button class="btn btn-s btn-sm" onclick="screenCand(${c.id})">&#9889; Screen</button>`:''}
+    ${c.screeningScore!=null?`<button class="btn btn-g btn-sm" onclick="openScreenModal(${c.id})">&#9998; Edit Score</button>`:''}
+    ${c.screeningVerdict==='YES'?`<button class="btn btn-g btn-sm" onclick="publishCand(${c.id})">&#127760; Publish</button>`:''}
+    <button class="btn btn-d btn-sm" onclick="deleteCand(${c.id})">&#128465; Delete</button>
+  </div>
   <div class="ds"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:1.1rem;font-weight:700;color:var(--text)">${esc(c.name)}</div><div style="color:var(--text2);margin-top:3px">${[esc(c.currentRole||''),esc(c.currentCompany||''),esc(c.location||'')].filter(Boolean).join(' &bull; ')}</div>${job?`<div style="color:var(--gold);font-size:.84rem;margin-top:3px">&#128188; ${esc(job.title)}</div>`:''}${c.stage?`<span class="bd bd-b" style="margin-top:5px;display:inline-block">${esc(c.stage)}</span>`:''}</div>${c.screeningScore!=null?`<div style="width:56px;height:56px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0">${sc}%</div>`:''}</div></div>
+  ${c.email?`<div class="ds"><div class="dl">Contact</div><div class="dv">${esc(c.email)}${c.phone?' &bull; '+esc(c.phone):''}${c.linkedIn?` &bull; <a href="${esc(c.linkedIn)}" target="_blank">LinkedIn</a>`:''}</div></div>`:''}
+  ${c.seniority?`<div class="ds"><div class="dl">Profile</div><div class="dv">${esc(c.seniority)}${c.experience?' &bull; '+esc(c.experience):''}${c.industry?' &bull; '+esc(c.industry):''}${c.availability?' &bull; Available: '+esc(c.availability):''}${c.salaryExpectation?' &bull; Expecting: '+esc(c.salaryExpectation):''}</div></div>`:''}
+  ${c.languages?`<div class="ds"><div class="dl">Languages</div><div class="dv">${esc(c.languages)}</div></div>`:''}
+  ${skills?`<div class="ds"><div class="dl">Skills</div><div class="dv">${esc(skills)}</div></div>`:''}
   ${c.screeningVerdict?`<div class="ds"><div class="dl">AI Screening</div><span class="bd ${c.screeningVerdict==='YES'?'bd-g':c.screeningVerdict==='NO'?'bd-r':'bd-y'}">${c.screeningVerdict}</span>${c.screeningRationale?`<div class="dv" style="margin-top:6px">${esc(c.screeningRationale)}</div>`:''}${c.screeningKeyStrength?`<div style="color:var(--green);font-size:.84rem;margin-top:4px">&#128170; ${esc(c.screeningKeyStrength)}</div>`:''}</div>`:''}
   ${c.cvText?`<div class="ds"><div class="dl">CV</div><div class="dv plain">${esc(c.cvText)}</div></div>`:''}`;
 }
@@ -662,10 +761,21 @@ function openCandModal(id){
   document.getElementById('candRole').value=c?c.currentRole||'' : '';
   document.getElementById('candCompany').value=c?c.currentCompany||'' : '';
   document.getElementById('candLoc').value=c?c.location||'' : '';
-  document.getElementById('candCv').value=c?c.cvText||'' : '';
+  document.getElementById('candEmail').value=c?c.email||'' : '';
+  document.getElementById('candPhone').value=c?c.phone||'' : '';
+  document.getElementById('candLinkedIn').value=c?c.linkedIn||'' : '';
+  document.getElementById('candSeniority').value=c?c.seniority||'' : '';
+  document.getElementById('candExp').value=c?c.experience||'' : '';
+  document.getElementById('candNotice').value=c?c.noticePeriod||'' : '';
+  document.getElementById('candIndustry').value=c?c.industry||'' : '';
+  document.getElementById('candSalary').value=c?c.salaryExpectation||'' : '';
+  document.getElementById('candAvail').value=c?c.availability||'' : '';
+  document.getElementById('candLangs').value=c?c.languages||'' : '';
+  document.getElementById('candSkills').value=(c&&c.skills?c.skills.join(', '):'');
   document.getElementById('candStage').value=c?c.stage||'PENDING':'PENDING';
   const sel=document.getElementById('candLinkedJob');
   sel.innerHTML='<option value="">- None -</option>'+S.jobs.map(j=>`<option value="${j.id}"${c&&+c.linkedJobId===+j.id?' selected':''}>${esc(j.title)}</option>`).join('');
+  document.getElementById('candCv').value=c?c.cvText||'' : '';
   showModal('candModal');
   setTimeout(()=>document.getElementById('candName').focus(),50);
 }
@@ -674,43 +784,132 @@ async function saveCand(){
   const name=document.getElementById('candName').value.trim();
   if(!name){toast('Name required');return;}
   const btn=document.getElementById('candSaveBtn');btn.disabled=true;btn.innerHTML='<span class="sp"></span>';
-  const d={name,currentRole:document.getElementById('candRole').value,currentCompany:document.getElementById('candCompany').value,location:document.getElementById('candLoc').value,cvText:document.getElementById('candCv').value,stage:document.getElementById('candStage').value,linkedJobId:document.getElementById('candLinkedJob').value||null};
+  const skills=document.getElementById('candSkills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const d={name,currentRole:document.getElementById('candRole').value,currentCompany:document.getElementById('candCompany').value,location:document.getElementById('candLoc').value,email:document.getElementById('candEmail').value,phone:document.getElementById('candPhone').value,linkedIn:document.getElementById('candLinkedIn').value,seniority:document.getElementById('candSeniority').value,experience:document.getElementById('candExp').value,noticePeriod:document.getElementById('candNotice').value,industry:document.getElementById('candIndustry').value,salaryExpectation:document.getElementById('candSalary').value,availability:document.getElementById('candAvail').value,languages:document.getElementById('candLangs').value,skills,cvText:document.getElementById('candCv').value,stage:document.getElementById('candStage').value,linkedJobId:document.getElementById('candLinkedJob').value||null};
   try{if(id){await aput('candidates.php',{...d,id});Object.assign(S.candidates.find(c=>+c.id===+id),d);if(selCand&&+selCand.id===+id){selCand={...selCand,...d};renderCandDetail();}}else{const r=await ap('candidates.php',d);S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});}
   closeModal('candModal');renderCandList();updateDash();updateChatContext();toast(id?'Updated':'Added');}catch(x){toast('Error: '+x.message);}
   btn.disabled=false;btn.textContent='Save';
 }
 async function deleteCand(id){if(!confirm('Delete this candidate?'))return;try{await adel('candidates.php?id='+id);S.candidates=S.candidates.filter(c=>+c.id!==+id);if(selCand&&+selCand.id===+id){selCand=null;renderCandDetail();}renderCandList();updateDash();updateChatContext();toast('Deleted');}catch(x){toast('Error: '+x.message);}}
 
-// ==================== AI SCREENING ====================
-async function screenCand(id){
-  if(!oaiKey){toast('Set OpenAI API key in Settings first');return;}
-  const c=S.candidates.find(x=>+x.id===+id);
-  if(!c){toast('Candidate not found');return;}
-  const job=S.jobs.find(j=>+j.id===+c.linkedJobId);
-  if(!job){toast('Link candidate to a job first');return;}
-  toast('AI screening in progress...');
-  try{
-    const res=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+oaiKey},body:JSON.stringify({model:'gpt-4o-mini',messages:[{role:'system',content:'You are an expert recruitment screener for finance/accounting roles. Score candidates with the same criteria you use for initial assessments. Be decisive: YES (75-100%), MAYBE (50-74%), NO (0-49%). Flag title inflation, detect hidden gems (ERP, SOX, M&A, go-live, intercompany). Give concise rationale in 2-3 sentences.'},{role:'user',content:`Screen this candidate for: ${job.title} at ${job.company||'Unknown'}
-
-JOB REQUIREMENTS:
-${stripHtml(job.description||'').substring(0,2000)}
-
-CANDIDATE PROFILE:
-Name: ${c.name}
+// ==================== UNIFIED SCREENING ENGINE ====================
+// ONE function used by both chat AND manual thunderbolt button
+async function doScreening(candidateId,jobId){
+  if(!oaiKey)throw new Error('Set AI API key in Settings first');
+  const c=S.candidates.find(x=>+x.id===+candidateId);
+  if(!c)throw new Error('Candidate #'+candidateId+' not found');
+  const jid=jobId||c.linkedJobId;
+  const job=S.jobs.find(j=>+j.id===+jid);
+  if(!job)throw new Error('No job linked. Edit candidate and assign a job first.');
+  
+  // Build rich context for screening
+  const candidateProfile=`Name: ${c.name}
 Role: ${c.currentRole||'N/A'} at ${c.currentCompany||'N/A'}
 Location: ${c.location||'N/A'}
+Seniority: ${c.seniority||'N/A'}
+Experience: ${c.experience||'N/A'}
+Skills: ${(c.skills||[]).join(', ')}
+Languages: ${c.languages||'N/A'}
+Industry: ${c.industry||'N/A'}
 
-${c.cvText||'No CV'}
+CV:
+${c.cvText||'No CV'}`;
 
-Respond with ONLY JSON: {"verdict":"YES|MAYBE|NO","score":0-100,"rationale":"2-3 sentences explaining fit or gaps","keyStrength":"one key strength or gap"}`}],response_format:{type:'json_object'},temperature:0.3})});
-    const data=await res.json();if(data.error)throw new Error(data.error.message);
-    const rs=JSON.parse(data.choices[0].message.content);
-    const upd={...c,screeningScore:rs.score,screeningVerdict:rs.verdict,screeningRationale:rs.rationale,screeningKeyStrength:rs.keyStrength};
-    await aput('candidates.php',upd);Object.assign(c,upd);
-    if(selCand&&+selCand.id===+id){selCand={...selCand,...upd};renderCandDetail();}
-    await ap('screenings.php',{candidateId:c.id,jobId:job.id,verdict:rs.verdict,score:rs.score,rationale:rs.rationale,keyStrength:rs.keyStrength});
-    renderCandList();renderScreenings();updateDash();toast(`Screened: ${rs.verdict} (${rs.score}%)`);
+  const jobProfile=`Title: ${job.title}
+Company: ${job.company||'N/A'}
+Location: ${job.location||'N/A'}
+Seniority: ${job.seniority||'N/A'} | Type: ${job.jobType||'N/A'}
+Skills Required: ${(job.skills||[]).join(', ')}
+Language Requirements: ${job.languageRequirements||'N/A'}
+Industry: ${job.industry||'N/A'}
+
+Description:
+${stripHtml(job.description||'').substring(0,1500)}
+
+Requirements:
+${stripHtml(job.requirements||'').substring(0,800)}`;
+
+  const screeningPrompt=`You are an expert recruitment screener for finance and accounting roles at Crossing Education.
+
+SCORING CRITERIA:
+- 90-100: Exceptional fit — exceeds requirements in every dimension
+- 75-89: Strong fit — meets all core requirements with good experience depth
+- 60-74: Good fit — meets most requirements, some gaps but workable
+- 40-59: Partial fit — significant gaps but some relevant experience
+- 0-39: Poor fit — lacks critical requirements
+
+VERDICT RULES:
+- YES (75%+): Ready to recommend. Strong match across skills, experience, and cultural fit.
+- MAYBE (50-74%): Has potential but notable gaps. Worth considering with caveats.
+- NO (0-49%): Lacks critical requirements. Not a match.
+
+IMPORTANT:
+- Flag title inflation: "Senior" at a tiny company != "Senior" at a large org
+- Detect hidden gems: ERP implementation, SOX, M&A, system go-live, intercompany, team leadership
+- Language match is CRITICAL if job specifies language requirements
+- Location flexibility matters for cross-border roles
+- Be decisive. Use the full 0-100 range. Avoid clustering at 70-80.
+
+JOB TO SCREEN AGAINST:
+${jobProfile}
+
+CANDIDATE TO EVALUATE:
+${candidateProfile}
+
+Respond with ONLY JSON:
+{"verdict":"YES|MAYBE|NO","score":0-100,"rationale":"2-3 sentences on specific fit and gaps","keyStrength":"single biggest strength or gap"}`;
+
+  const res=await callAI([{role:'system',content:'You are an expert recruitment screener. Be decisive and use the full score range.'},{role:'user',content:screeningPrompt}],0.3,1500,true);
+  const rs=JSON.parse(res);
+  
+  // Save to candidate
+  const upd={...c,screeningScore:rs.score,screeningVerdict:rs.verdict,screeningRationale:rs.rationale,screeningKeyStrength:rs.keyStrength};
+  await aput('candidates.php',upd);Object.assign(c,upd);
+  if(selCand&&+selCand.id===+candidateId){selCand={...selCand,...upd};renderCandDetail();}
+  
+  // Save to screenings table
+  await ap('screenings.php',{candidateId:c.id,jobId:job.id,verdict:rs.verdict,score:rs.score,rationale:rs.rationale,keyStrength:rs.keyStrength});
+  
+  renderCandList();renderScreenings();updateDash();
+  return {verdict:rs.verdict,score:rs.score};
+}
+
+// Manual button calls this
+async function screenCand(id){
+  toast('AI screening in progress...');
+  try{
+    const result=await doScreening(id);
+    toast(`Screened: ${result.verdict} (${result.score}%)`);
   }catch(x){toast('Screening error: '+x.message);}
+}
+
+// Edit screening modal
+function openScreenModal(id){
+  const c=S.candidates.find(x=>+x.id===+id);
+  if(!c)return;
+  document.getElementById('screenCandId').value=id;
+  document.getElementById('screenVerdict').value=c.screeningVerdict||'MAYBE';
+  document.getElementById('screenScore').value=c.screeningScore||50;
+  document.getElementById('screenRationale').value=c.screeningRationale||'';
+  document.getElementById('screenStrength').value=c.screeningKeyStrength||'';
+  showModal('screenModal');
+}
+async function saveScreening(){
+  const id=+document.getElementById('screenCandId').value;
+  const c=S.candidates.find(x=>+x.id===id);
+  if(!c)return;
+  const upd={...c,
+    screeningVerdict:document.getElementById('screenVerdict').value,
+    screeningScore:+document.getElementById('screenScore').value,
+    screeningRationale:document.getElementById('screenRationale').value,
+    screeningKeyStrength:document.getElementById('screenStrength').value
+  };
+  try{
+    await aput('candidates.php',upd);Object.assign(c,upd);
+    if(selCand&&+selCand.id===id){selCand={...selCand,...upd};renderCandDetail();}
+    renderCandList();renderScreenings();updateDash();toast('Screening updated');
+    closeModal('screenModal');
+  }catch(x){toast('Error: '+x.message);}
 }
 
 // ==================== SCREENINGS ====================
@@ -721,7 +920,7 @@ function renderScreenings(){
   document.getElementById('vNo').textContent=sc.filter(c=>c.screeningVerdict==='NO').length;
   const el=document.getElementById('screeningList');
   if(!sc.length){el.innerHTML='<div class="em">No screened candidates yet.</div>';return;}
-  el.innerHTML=sc.map(c=>{const job=S.jobs.find(j=>+j.id===+c.linkedJobId);const s=+c.screeningScore||0;const col=s>=75?'var(--green)':s>=50?'var(--gold)':'var(--red)';return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start"><div style="width:50px;height:50px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0">${s}%</div><div style="flex:1;min-width:0"><div style="font-weight:600;color:var(--text)">${esc(c.name)} <span class="bd ${c.screeningVerdict==='YES'?'bd-g':c.screeningVerdict==='NO'?'bd-r':'bd-y'}">${c.screeningVerdict}</span></div><div style="font-size:.81rem;color:var(--text2);margin-top:2px">${esc(c.currentRole||'')}${job?' &rarr; '+esc(job.title):''}</div>${c.screeningRationale?`<div style="font-size:.84rem;color:var(--text2);margin-top:4px">${esc(c.screeningRationale)}</div>`:''}${c.screeningKeyStrength?`<div style="font-size:.8rem;color:var(--green);margin-top:3px">&#128170; ${esc(c.screeningKeyStrength)}</div>`:''}</div></div>`;}).join('');
+  el.innerHTML=sc.map(c=>{const job=S.jobs.find(j=>+j.id===+c.linkedJobId);const s=+c.screeningScore||0;const col=s>=75?'var(--green)':s>=50?'var(--gold)':'var(--red)';return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start"><div style="width:50px;height:50px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0">${s}%</div><div style="flex:1;min-width:0"><div style="font-weight:600;color:var(--text)">${esc(c.name)} <span class="bd ${c.screeningVerdict==='YES'?'bd-g':c.screeningVerdict==='NO'?'bd-r':'bd-y'}">${c.screeningVerdict}</span></div><div style="font-size:.81rem;color:var(--text2);margin-top:2px">${esc(c.currentRole||'')}${job?' &rarr; '+esc(job.title):''}</div>${c.screeningRationale?`<div style="font-size:.84rem;color:var(--text2);margin-top:4px">${esc(c.screeningRationale)}</div>`:''}${c.screeningKeyStrength?`<div style="font-size:.8rem;color:var(--green);margin-top:3px">&#128170; ${esc(c.screeningKeyStrength)}</div>`:''}<div style="margin-top:6px"><button class="btn btn-g btn-xs" onclick="openScreenModal(${c.id})">&#9998; Edit</button></div></div></div>`;}).join('');
 }
 
 // ==================== WEBSITE ====================
@@ -733,59 +932,120 @@ function switchWebTab(tab,btn){
 function renderWebsite(){
   document.getElementById('wpj').textContent=S.pJobs.length;
   document.getElementById('wpc').textContent=S.pCands.length;
-  // Publish jobs section
   document.getElementById('publishJobSection').innerHTML=S.jobs.length?S.jobs.map(j=>{const pub=S.pJobs.find(p=>+p.sourceJobId===+j.id);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bg3)"><span style="font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${esc(j.title)}</span><button class="btn btn-sm ${pub?'btn-s':'btn-p'}" onclick="publishJob(${j.id})" style="min-width:80px">${pub?'&#10003; Update':'Publish'}</button></div>`;}).join(''):'<div style="color:var(--text3);font-size:.84rem">No internal jobs</div>';
-  // Publish candidates section (YES only)
   const yc=S.candidates.filter(c=>c.screeningVerdict==='YES');
   document.getElementById('publishCandSection').innerHTML=yc.length?yc.map(c=>{const pub=S.pCands.find(p=>+p.sourceCandidateId===+c.id);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bg3)"><span style="font-size:.84rem">${esc(c.name)} <span style="color:var(--green);font-size:.77rem">(${c.screeningScore}%)</span></span><button class="btn btn-sm ${pub?'btn-s':'btn-p'}" onclick="publishCand(${c.id})" style="min-width:80px">${pub?'&#10003; Update':'Publish'}</button></div>`;}).join(''):'<div style="color:var(--text3);font-size:.84rem">No YES candidates yet. AI screen candidates first.</div>';
-  // Public lists
   document.getElementById('pubJobList').innerHTML=S.pJobs.length?S.pJobs.map(j=>{const sk=j.skills||[];return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:7px;display:flex;gap:8px"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.88rem;color:var(--text)">${esc(j.title)}</div><div style="font-size:.77rem;color:var(--text2)">${[esc(j.company||''),esc(j.location||'')].filter(Boolean).join(' &bull; ')}</div>${sk.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${sk.map(s=>`<span class="bd bd-gr">${esc(s)}</span>`).join('')}</div>`:''}</div><div style="display:flex;gap:2px;flex-shrink:0"><button class="btn-ic" onclick="editPubJob(${j.id})">&#9998;</button><button class="btn-ic" onclick="deletePubJob(${j.id})">&#128465;</button></div></div>`;}).join(''):'<div class="em">No public jobs yet.</div>';
   document.getElementById('pubCandList').innerHTML=S.pCands.length?S.pCands.map(c=>{const sk=c.skills||[];return`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:7px;display:flex;gap:8px"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.88rem;color:var(--text)">${esc(c.name)}</div><div style="font-size:.77rem;color:var(--text2)">${[esc(c.role||''),esc(c.location||'')].filter(Boolean).join(' &bull; ')}</div>${c.highlight?`<div style="font-size:.82rem;color:var(--text2);margin-top:3px">${esc(c.highlight)}</div>`:''}${sk.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${sk.map(s=>`<span class="bd bd-gr">${esc(s)}</span>`).join('')}</div>`:''}</div><div style="display:flex;gap:2px;flex-shrink:0"><button class="btn-ic" onclick="editPubCand(${c.id})">&#9998;</button><button class="btn-ic" onclick="deletePubCand(${c.id})">&#128465;</button></div></div>`;}).join(''):'<div class="em">No public profiles yet.</div>';
 }
 async function publishJob(id){
   const j=S.jobs.find(x=>+x.id===+id);if(!j)return;
   try{const ex=S.pJobs.find(p=>+p.sourceJobId===+id);
-  const d={title:j.title,company:j.company||'',location:j.location||'',salary:j.salary||'',desc:stripHtml(j.description||''),skills:[],sourceJobId:id};
+  const d={title:j.title,company:j.company||'',location:j.location||'',salary:j.salary||'',desc:stripHtml(j.description||''),skills:j.skills||[],sourceJobId:id};
   if(ex){await aput('public.php?type=jobs',{...d,id:ex.id});Object.assign(ex,d);}else{const r=await ap('public.php?type=jobs',d);S.pJobs.unshift({...d,id:r.id});}
   renderWebsite();toast('Published');}catch(x){toast('Error: '+x.message);}
 }
 async function publishCand(id){
   const c=S.candidates.find(x=>+x.id===+id);if(!c)return;
   try{const ex=S.pCands.find(p=>+p.sourceCandidateId===+c.id);
-  const d={name:c.name,role:c.currentRole||'',location:c.location||'',exp:'',highlight:'',skills:[],sourceCandidateId:id};
+  const d={name:c.name,role:c.currentRole||'',location:c.location||'',exp:c.experience||'',highlight:c.screeningRationale||'',skills:c.skills||[],sourceCandidateId:id};
   if(ex){await aput('public.php?type=candidates',{...d,id:ex.id});Object.assign(ex,d);}else{const r=await ap('public.php?type=candidates',d);S.pCands.unshift({...d,id:r.id});}
   renderWebsite();toast('Published');}catch(x){toast('Error: '+x.message);}
+}
+
+// ==================== AI ENGINE (OpenAI + Kimi) ====================
+function getAIConfig(){
+  aiProvider=localStorage.getItem(AI_PROVIDER_KEY)||'openai';
+  oaiKey=localStorage.getItem(AI_KEY)||'';
+  return{
+    provider:aiProvider,
+    key:oaiKey,
+    url:aiProvider==='kimi'?'https://api.moonshot.cn/v1/chat/completions':'https://api.openai.com/v1/chat/completions',
+    model:aiProvider==='kimi'?'moonshot-v1-32k':'gpt-4o-mini'
+  };
+}
+async function callAI(messages,temperature=0.7,maxTokens=2000,jsonMode=false){
+  const cfg=getAIConfig();
+  if(!cfg.key)throw new Error('Set AI API key in Settings first');
+  const body={model:cfg.model,messages,temperature,max_tokens:maxTokens};
+  if(jsonMode)body.response_format={type:'json_object'};
+  const res=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},body:JSON.stringify(body)});
+  const data=await res.json();if(data.error)throw new Error(data.error.message);
+  return data.choices[0].message.content;
 }
 
 // ==================== CHAT ====================
 function loadChat(){try{const r=localStorage.getItem(CHAT_KEY);chatHist=r?JSON.parse(r):[];if(!Array.isArray(chatHist))chatHist=[];}catch(e){chatHist=[];}}
 function saveChat(){localStorage.setItem(CHAT_KEY,JSON.stringify(chatHist.slice(-60)));}
 function clearChatHistory(){chatHist=[];localStorage.removeItem(CHAT_KEY);document.getElementById('chatMessages').innerHTML='<div class="em" style="flex:1;justify-content:center">Chat cleared</div>';}
-function updateChatContext(){document.getElementById('chatContext').textContent=`Context: ${S.jobs.length} jobs · ${S.candidates.length} candidates · ${S.pJobs.length} public`;}
+function updateChatContext(){document.getElementById('chatContext').textContent=`Context: ${S.jobs.length} jobs · ${S.candidates.length} candidates · ${S.pJobs.length} public` + (aiProvider==='kimi'?' · Kimi AI':' · OpenAI');}
 function quickChat(t){document.getElementById('chatInput').value=t;document.getElementById('chatInput').focus();}
 
 function buildSysPrompt(){
-  const jx=S.jobs.map(j=>`Job #${j.id}: ${j.title} @${j.company||'?'} | ${j.location||'?'} [${j.status}]\n${stripHtml(j.description||'').substring(0,300)}`).join('\n\n');
-  const cx=S.candidates.map(c=>`Candidate #${c.id}: ${c.name} | ${c.currentRole||'?'} @${c.currentCompany||'?'} | ${c.location||'?'} | Score: ${c.screeningScore||'unscreened'} | ${c.screeningVerdict||'-'}\n${(c.cvText||'').substring(0,200)}`).join('\n\n');
-  // Track which job was most recently discussed
-  const recentJobMsg = chatHist.filter(m => m.role === 'user').slice(-5).find(m => {
-    const t = m.text.toLowerCase();
-    return S.jobs.some(j => t.includes((j.title||'').toLowerCase()) || t.includes((j.company||'').toLowerCase()));
-  });
-  const lastDiscussedJob = recentJobMsg ? S.jobs.find(j => 
-    recentJobMsg.text.toLowerCase().includes((j.title||'').toLowerCase()) || 
-    recentJobMsg.text.toLowerCase().includes((j.company||'').toLowerCase())
-  ) : null;
-  
-  return `You are TalentAI, a recruitment AI for Crossing Education (finance/accounting specialist).\n\nRULES:\n- Give decisive YES/NO/MAYBE verdicts with 0-100% scores\n- Flag title inflation, detect hidden gems (ERP, SOX, M&A, go-live)\n- Explain in 2-3 sentences max\n- When user wants to add a candidate/job, use the available tools\n\nCRITICAL RULES:\n1. When creating a candidate, ALWAYS set linkedJobId to 0 (this auto-links to the most recently discussed job).\n2. Only use linkedJobId:-1 if the user explicitly says NOT to link to any job.\n3. When user says "add to the list" after discussing a job, they mean link to that job.\n\n${lastDiscussedJob ? `MOST RECENTLY DISCUSSED JOB: #${lastDiscussedJob.id} - ${lastDiscussedJob.title} @ ${lastDiscussedJob.company || '?'}` : 'No specific job recently discussed.'}\n\nINTERNAL JOBS (${S.jobs.length}):\n${jx||'(none)'}\n\nCANDIDATES (${S.candidates.length}):\n${cx||'(none)'}`;
+  const jx=S.jobs.map(j=>`Job #${j.id}: ${j.title} @${j.company||'?'} | ${j.location||'?'} | ${j.seniority||'?'} | ${j.industry||'?'} [${j.status}]
+Skills: ${(j.skills||[]).join(', ')}
+Lang: ${j.languageRequirements||'?'}
+${stripHtml(j.description||'').substring(0,200)}`).join('\n\n');
+  const cx=S.candidates.map(c=>`Candidate #${c.id}: ${c.name} | ${c.currentRole||'?'} @${c.currentCompany||'?'} | ${c.location||'?'} | ${c.seniority||'?'} | Score: ${c.screeningScore||'unscreened'} | ${c.screeningVerdict||'-'}
+Skills: ${(c.skills||[]).join(', ')}
+${(c.cvText||'').substring(0,150)}`).join('\n\n');
+  return `You are TalentAI, a recruitment AI for Crossing Education (finance/accounting specialist).
+
+RULES:
+- Give decisive YES/NO/MAYBE verdicts with 0-100% scores
+- Flag title inflation, detect hidden gems (ERP, SOX, M&A, go-live)
+- Explain in 2-3 sentences max
+- When user wants to add a candidate/job, use the available tools
+- ALWAYS extract ALL possible fields from CVs and JDs (skills, seniority, languages, industry, etc.)
+
+CRITICAL: When creating a candidate with linkedJobId:0, the system will auto-link to the most recently discussed job.
+
+INTERNAL JOBS (${S.jobs.length}):
+${jx||'(none)'}
+
+CANDIDATES (${S.candidates.length}):
+${cx||'(none)'}`;
+}
+
+const OAI_TOOLS=[{'type':'function','function':{'name':'createCandidate','description':'Add a candidate to the database. Extract ALL fields from the CV text. Set linkedJobId to 0 to auto-link to the most recently discussed job.','parameters':{'type':'object','properties':{'name':{'type':'string','description':'Full name'},'currentRole':{'type':'string','description':'Current/most recent job title'},'currentCompany':{'type':'string','description':'Current/most recent employer'},'location':{'type':'string','description':'City, Country'},'email':{'type':'string','description':'Email address if found'},'phone':{'type':'string','description':'Phone number if found'},'linkedIn':{'type':'string','description':'LinkedIn URL if found'},'cvText':{'type':'string','description':'COMPLETE CV text - paste everything'},'seniority':{'type':'string','description':'Junior, Mid, Senior, or Executive'},'experience':{'type':'string','description':'Years of experience, e.g. 5+ years'},'industry':{'type':'string','description':'Industry sector'},'skills':{'type':'array','items':{'type':'string'},'description':'Array of technical skills extracted from CV'},'languages':{'type':'string','description':'Languages and proficiency levels'},'availability':{'type':'string','description':'Immediate, 1 month, 2 months, 3 months'},'salaryExpectation':{'type':'string','description':'Expected salary if mentioned'},'linkedJobId':{'type':'number','description':'ALWAYS use 0 to auto-link. Use -1 to not link.'}},'required':['name','cvText']}}},{'type':'function','function':{'name':'createJob','description':'Add a job to the database. Extract ALL fields from the job description.','parameters':{'type':'object','properties':{'title':{'type':'string'},'company':{'type':'string'},'location':{'type':'string'},'salary':{'type':'string','description':'Salary range if mentioned'},'description':{'type':'string','description':'Full job description'},'requirements':{'type':'string','description':'Key requirements'},'skills':{'type':'array','items':{'type':'string'},'description':'Required skills as array'},'seniority':{'type':'string','description':'Junior, Mid, Senior, Executive'},'jobType':{'type':'string','description':'Full-time, Contract, Part-time'},'industry':{'type':'string','description':'Industry sector'},'languageRequirements':{'type':'string','description':'Required languages and levels'}},'required':['title','description']}}},{'type':'function','function':{'name':'screenCandidate','description':'Screen a candidate against their linked job. Use when user asks to evaluate fit.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'}},'required':['candidateId']}}},{'type':'function','function':{'name':'moveStage','description':'Change a candidate pipeline stage.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'},'stage':{'type':'string','enum':['PENDING','SUBMITTED','SCREENING','INTERVIEW','OFFER','HIRED','REJECTED']}},'required':['candidateId','stage']}}}];
+
+document.getElementById('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
+document.getElementById('chatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
+
+async function sendChat(){
+  const cfg=getAIConfig();
+  if(!cfg.key){toast('Set AI API key in Settings first');return;}
+  const inp=document.getElementById('chatInput');const text=inp.value.trim();if(!text)return;
+  const btn=document.getElementById('sendBtn');btn.disabled=true;btn.textContent='...';
+  inp.value='';inp.style.height='44px';
+  const el=document.getElementById('chatMessages');if(el.querySelector('.em'))el.innerHTML='';
+  const mi=chatHist.length;const um={role:'user',text,t:Date.now()};chatHist.push(um);saveChat();
+  el.insertAdjacentHTML('beforeend',renderChatMsg(um,mi));el.scrollTop=el.scrollHeight;
+  const tk=document.createElement('div');tk.className='msg mb2';tk.innerHTML='<div class="tk"><span></span><span></span><span></span></div>';el.appendChild(tk);el.scrollTop=el.scrollHeight;
+  try{
+    const msgs=[{role:'system',content:buildSysPrompt()},...chatHist.slice(-20).map(m=>({role:m.role,content:m.text}))];
+    const res=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},body:JSON.stringify({model:cfg.model,messages:msgs,tools:OAI_TOOLS,tool_choice:'auto',temperature:0.7,max_tokens:2500})});
+    const data=await res.json();if(data.error)throw new Error(data.error.message);
+    const msg=data.choices[0].message;
+    let clean=msg.content||'Done';let acts=[];
+    if(msg.tool_calls&&msg.tool_calls.length){
+      for(const tc of msg.tool_calls){
+        if(tc.function){
+          try{const args=JSON.parse(tc.function.arguments);acts.push({type:tc.function.name,data:args});}catch(e){}
+        }
+      }
+    }
+    if(!acts.length){const oldActs=extractActions(clean);if(oldActs.length)acts=oldActs;}
+    const bi=chatHist.length;const bm={role:'assistant',text:clean,actions:acts,t:Date.now()};chatHist.push(bm);saveChat();
+    tk.remove();el.insertAdjacentHTML('beforeend',renderChatMsg(bm,bi));el.scrollTop=el.scrollHeight;
+  }catch(x){tk.remove();const ei=chatHist.length;const em2={role:'assistant',text:'Error: '+x.message,t:Date.now()};chatHist.push(em2);saveChat();el.insertAdjacentHTML('beforeend',renderChatMsg(em2,ei));el.scrollTop=el.scrollHeight;}
+  btn.disabled=false;btn.textContent='Send';
 }
 
 function extractActions(text){
   const actions=[];
-  // Match ```action or ```json blocks
   const re=/```(?:action|json)?\n?([\s\S]*?)\n?```/gi;
   let m;while((m=re.exec(text))!==null){try{const p=JSON.parse(m[1].trim());if(p.type&&p.data)actions.push(p);}catch(e){}}
-  // Try finding standalone JSON objects with type+data
   if(!actions.length){
     const re2=/\{\s*"type"\s*:\s*"(createJob|createCandidate|screenCandidate|moveStage)"\s*,\s*"data"\s*:\s*\{[\s\S]*?\}\s*\}/g;
     let m2;while((m2=re2.exec(text))!==null){try{const p=JSON.parse(m2[0]);if(p.type&&p.data)actions.push(p);}catch(e){}}
@@ -814,14 +1074,39 @@ function renderChatMsg(m,i){
 }
 
 // Track last created IDs for action chaining
-let _lastJobId=null,_lastCandId=null;
+let _lastJobId=null,_lastCandId=null,_lastDiscussedJobId=null;
 
 async function execAction(a){
   const d=a.data;
-  if(a.type==='createJob'){const r=await ap('jobs.php',d);_lastJobId=r.id;S.jobs.unshift({...d,id:r.id,status:'active',createdAt:new Date().toISOString()});renderJobList();updateDash();updateChatContext();return`Job "${d.title}" created (ID:${r.id})`;}
-  if(a.type==='createCandidate'){const r=await ap('candidates.php',d);_lastCandId=r.id;S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});renderCandList();updateDash();updateChatContext();return`Candidate "${d.name}" added (ID:${r.id})`;}
-  if(a.type==='moveStage'){const cid=+d.candidateId||_lastCandId;if(!cid)throw new Error('No candidate ID');const c=S.candidates.find(x=>+x.id===cid);if(!c)throw new Error('Candidate #'+cid+' not found');await aput('candidates.php',{...c,stage:d.stage});c.stage=d.stage;renderCandList();renderCandDetail();return`${c.name} moved to ${d.stage}`;}
-  if(a.type==='screenCandidate'){const cid=+d.candidateId||_lastCandId;if(!cid)throw new Error('No candidate ID — create candidate first');const c=S.candidates.find(x=>+x.id===cid);if(!c)throw new Error('Candidate #'+cid+' not found');const job=S.jobs.find(j=>+j.id===+c.linkedJobId);if(!job)throw new Error('Not linked to a job');await screenCand(cid);return`Screened candidate #${cid}`;}
+  // Resolve linkedJobId:0 to actual job
+  if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
+  if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id;
+  if(d.linkedJobId===-1)d.linkedJobId=null;
+  
+  if(a.type==='createJob'){
+    const r=await ap('jobs.php',d);_lastJobId=r.id;_lastDiscussedJobId=r.id;
+    S.jobs.unshift({...d,id:r.id,status:'active',createdAt:new Date().toISOString()});
+    renderJobList();updateDash();updateChatContext();return`Job "${d.title}" created (ID:${r.id})`;
+  }
+  if(a.type==='createCandidate'){
+    const r=await ap('candidates.php',d);_lastCandId=r.id;
+    if(d.linkedJobId)_lastDiscussedJobId=d.linkedJobId;
+    S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});
+    renderCandList();updateDash();updateChatContext();return`Candidate "${d.name}" added (ID:${r.id})${d.linkedJobId?' linked to job #'+d.linkedJobId:''}`;
+  }
+  if(a.type==='screenCandidate'){
+    const cid=+d.candidateId||_lastCandId;
+    if(!cid)throw new Error('No candidate ID');
+    const result=await doScreening(cid);
+    return`Screened: ${result.verdict} (${result.score}%)`;
+  }
+  if(a.type==='moveStage'){
+    const cid=+d.candidateId||_lastCandId;
+    if(!cid)throw new Error('No candidate ID');
+    const c=S.candidates.find(x=>+x.id===cid);if(!c)throw new Error('Candidate #'+cid+' not found');
+    await aput('candidates.php',{...c,stage:d.stage});c.stage=d.stage;
+    renderCandList();renderCandDetail();return`${c.name} moved to ${d.stage}`;
+  }
   throw new Error('Unknown: '+a.type);
 }
 async function confirmAction(mi,ai){
@@ -838,50 +1123,38 @@ function dismissAction(mi,ai){
   const el=document.getElementById(`ac-${mi}-${ai}`);if(el)el.outerHTML=`<div class="ac"><div style="color:var(--text3);font-size:.8rem">&#10007; Dismissed</div></div>`;
 }
 
-document.getElementById('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
-document.getElementById('chatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
-
-const OAI_TOOLS=[{'type':'function','function':{'name':'createCandidate','description':'Add a candidate to the database. CRITICAL: ALWAYS set linkedJobId to 0 to link to the most recently discussed job, unless user explicitly says not to link.','parameters':{'type':'object','properties':{'name':{'type':'string','description':'Full name'},'currentRole':{'type':'string','description':'Current or most recent job title'},'currentCompany':{'type':'string','description':'Current or most recent employer'},'location':{'type':'string','description':'City, Country'},'cvText':{'type':'string','description':'Complete CV/resume text with all experience, education, skills'},'linkedJobId':{'type':'number','description':'ALWAYS use 0 to auto-link to the most recently discussed job. Use -1 only if user says NOT to link.'}},'required':['name','cvText']}}},{'type':'function','function':{'name':'createJob','description':'Add a job to the database. Use when user provides a job description.','parameters':{'type':'object','properties':{'title':{'type':'string'},'company':{'type':'string'},'location':{'type':'string'},'salary':{'type':'string'},'description':{'type':'string','description':'Full job description including responsibilities and requirements'}},'required':['title','description']}}},{'type':'function','function':{'name':'screenCandidate','description':'Screen a candidate against their linked job using AI analysis. Use when user asks to evaluate fit or screen.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added candidate.'}},'required':['candidateId']}}},{'type':'function','function':{'name':'moveStage','description':'Change a candidate pipeline stage.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'},'stage':{'type':'string','enum':['PENDING','SUBMITTED','SCREENING','INTERVIEW','OFFER','HIRED','REJECTED']}},'required':['candidateId','stage']}}}];
-
-async function sendChat(){
-  if(!oaiKey){toast('Set OpenAI API key in Settings first');return;}
-  const inp=document.getElementById('chatInput');const text=inp.value.trim();if(!text)return;
-  const btn=document.getElementById('sendBtn');btn.disabled=true;btn.textContent='...';
-  inp.value='';inp.style.height='44px';
-  const el=document.getElementById('chatMessages');if(el.querySelector('.em'))el.innerHTML='';
-  const mi=chatHist.length;const um={role:'user',text,t:Date.now()};chatHist.push(um);saveChat();
-  el.insertAdjacentHTML('beforeend',renderChatMsg(um,mi));el.scrollTop=el.scrollHeight;
-  const tk=document.createElement('div');tk.className='msg mb2';tk.innerHTML='<div class="tk"><span></span><span></span><span></span></div>';el.appendChild(tk);el.scrollTop=el.scrollHeight;
-  try{
-    const msgs=[{role:'system',content:buildSysPrompt()},...chatHist.slice(-20).map(m=>({role:m.role,content:m.text}))];
-    const res=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+oaiKey},body:JSON.stringify({model:'gpt-4o-mini',messages:msgs,tools:OAI_TOOLS,tool_choice:'auto',temperature:0.7,max_tokens:2000})});
-    const data=await res.json();if(data.error)throw new Error(data.error.message);
-    const msg=data.choices[0].message;
-    let clean=msg.content||'Done';let acts=[];
-    // Extract tool calls (function calling) - reliable structured output
-    if(msg.tool_calls&&msg.tool_calls.length){
-      for(const tc of msg.tool_calls){
-        if(tc.function){
-          try{const args=JSON.parse(tc.function.arguments);acts.push({type:tc.function.name,data:args});}catch(e){}
-        }
-      }
-    }
-    // Fallback: also try old extraction from content
-    if(!acts.length){const oldActs=extractActions(clean);if(oldActs.length)acts=oldActs;}
-    const bi=chatHist.length;const bm={role:'assistant',text:clean,actions:acts,t:Date.now()};chatHist.push(bm);saveChat();
-    tk.remove();el.insertAdjacentHTML('beforeend',renderChatMsg(bm,bi));el.scrollTop=el.scrollHeight;
-  }catch(x){tk.remove();const ei=chatHist.length;const em2={role:'assistant',text:'Error: '+x.message,t:Date.now()};chatHist.push(em2);saveChat();el.insertAdjacentHTML('beforeend',renderChatMsg(em2,ei));el.scrollTop=el.scrollHeight;}
-  btn.disabled=false;btn.textContent='Send';
-}
-
 // ==================== SETTINGS ====================
 function loadSettings(){
-  document.getElementById('settingKey').value=oaiKey;
-  if(oaiKey)document.getElementById('keyStatus').textContent='Key is set';
+  // AI provider
+  aiProvider=localStorage.getItem(AI_PROVIDER_KEY)||'openai';
+  oaiKey=localStorage.getItem(AI_KEY)||'';
+  document.getElementById('aiProvider').value=aiProvider;
+  document.getElementById('aiKey').value=oaiKey;
+  if(oaiKey)document.getElementById('keyStatus').textContent=aiProvider==='kimi'?'Kimi key set':'OpenAI key set';
+  // Session timeout
+  const timeout=localStorage.getItem('ce_session_timeout')||'2592000000';
+  document.getElementById('sessionTimeout').value=timeout;
+  // WhatsApp
   const wa=JSON.parse(localStorage.getItem('ce_settings')||'{}').wa||'';
   if(wa)document.getElementById('settingWa').value=wa;
 }
-function saveKey(){oaiKey=document.getElementById('settingKey').value.trim();localStorage.setItem(OAI_KEY,oaiKey);document.getElementById('keyStatus').textContent=oaiKey?'Key saved':'Key removed';toast('API key saved');}
+function onProviderChange(){
+  const p=document.getElementById('aiProvider').value;
+  document.getElementById('aiHelp').innerHTML=p==='kimi'?'Kimi: get key from platform.moonshot.cn':'OpenAI: get key from platform.openai.com';
+}
+function saveAiSettings(){
+  aiProvider=document.getElementById('aiProvider').value;
+  oaiKey=document.getElementById('aiKey').value.trim();
+  localStorage.setItem(AI_PROVIDER_KEY,aiProvider);
+  localStorage.setItem(AI_KEY,oaiKey);
+  document.getElementById('keyStatus').textContent=oaiKey?(aiProvider==='kimi'?'Kimi key saved':'OpenAI key saved'):'Key removed';
+  toast('AI settings saved');
+}
+function saveSessionTimeout(){
+  localStorage.setItem('ce_session_timeout',document.getElementById('sessionTimeout').value);
+  document.getElementById('sessionStatus').textContent='Saved';
+  toast('Session timeout saved');
+}
 function saveWa(){const wa=document.getElementById('settingWa').value.trim();localStorage.setItem('ce_settings',JSON.stringify({wa}));toast('Saved');}
 async function changePassword(){
   const np=document.getElementById('newPw').value;const cp=document.getElementById('confirmPw').value;
@@ -889,7 +1162,7 @@ async function changePassword(){
   if(np!==cp){el.textContent='Passwords do not match';el.classList.remove('hidden');el.style.display='block';return;}
   if(np.length<6){el.textContent='Minimum 6 characters';el.classList.remove('hidden');el.style.display='block';return;}
   try{const r=await fetch(au('auth.php'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({newHash:hp(np)})});const d=await r.json();
-  if(d.success){authHash=hp(np);localStorage.setItem(AUTH_KEY,authHash);el.textContent='Password updated';el.style.color='var(--green)';el.classList.remove('hidden');el.style.display='block';document.getElementById('newPw').value='';document.getElementById('confirmPw').value='';}
+  if(d.success){authHash=hp(np);setSession(true);el.textContent='Password updated';el.style.color='var(--green)';el.classList.remove('hidden');el.style.display='block';document.getElementById('newPw').value='';document.getElementById('confirmPw').value='';}
   else {el.textContent='Failed';el.classList.remove('hidden');el.style.display='block';}
   }catch(x){el.textContent='Error: '+x.message;el.classList.remove('hidden');el.style.display='block';}
 }
@@ -898,8 +1171,8 @@ async function changePassword(){
 function showExport(){showModal('exportModal');}
 function exportJSON(){download('talentai-export.json','application/json',JSON.stringify({jobs:S.jobs,candidates:S.candidates,exportedAt:new Date().toISOString()},null,2));}
 function exportCSV(type){
-  if(type==='jobs'){const rows=[['ID','Title','Company','Location','Salary','Status'],...S.jobs.map(j=>[j.id,j.title,j.company,j.location,j.salary,j.status])];download('jobs.csv','text/csv',rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n'));}
-  else{const rows=[['ID','Name','Role','Company','Score','Verdict','Stage'],...S.candidates.map(c=>[c.id,c.name,c.currentRole,c.currentCompany,c.screeningScore,c.screeningVerdict,c.stage])];download('candidates.csv','text/csv',rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n'));}
+  if(type==='jobs'){const rows=[['ID','Title','Company','Location','Salary','Seniority','Status'],...S.jobs.map(j=>[j.id,j.title,j.company,j.location,j.salary,j.seniority,j.status])];download('jobs.csv','text/csv',rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n'));}
+  else{const rows=[['ID','Name','Role','Company','Score','Verdict','Seniority','Stage'],...S.candidates.map(c=>[c.id,c.name,c.currentRole,c.currentCompany,c.screeningScore,c.screeningVerdict,c.seniority,c.stage])];download('candidates.csv','text/csv',rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n'));}
 }
 function download(name,type,content){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href);}
 async function importJSON(inp){
@@ -915,7 +1188,7 @@ async function importJSON(inp){
 
 // ==================== PUB MODAL HANDLERS ====================
 function openPubJobModal(id){const j=id?S.pJobs.find(x=>+x.id===+id):null;document.getElementById('pubJobModalTitle').textContent=j?'Edit Public Job':'Add Public Job';document.getElementById('pubJobId').value=j?j.id:'';document.getElementById('pubJobTitle').value=j?j.title||'':'';document.getElementById('pubJobCompany').value=j?j.company||'':'';document.getElementById('pubJobLocation').value=j?j.location||'':'';document.getElementById('pubJobSalary').value=j?j.salary||'':'';document.getElementById('pubJobSkills').value=(j&&j.skills?j.skills.join(', '):'');document.getElementById('pubJobDesc').value=j?j.description||j.desc||'':'';showModal('pubJobModal');}
-async function savePubJob(){const id=document.getElementById('pubJobId').value;const title=document.getElementById('pubJobTitle').value.trim();if(!title){toast('Title required');return;}const sk=document.getElementById('pubJobSkills').value.split(',').map(s=>s.trim()).filter(Boolean);const d={title,company:document.getElementById('pubJobCompany').value,location:document.getElementById('pubJobLocation').value,salary:document.getElementById('pubJobSalary').value,desc:document.getElementById('pubJobDesc').value,skills:sk};try{if(id){await aput('public.php?type=jobs',{...d,id});Object.assign(S.pJobs.find(j=>+j.id===+id),d);}else{const r=await ap('public.php?type=jobs',d);S.pJobs.unshift({...d,id:r.id});}closeModal('pubJobModal');renderWebsite();toast('Saved');}catch(x){toast('Error: '+x.message);}}
+async function savePubJob(){const id=document.getElementById('pubJobId').value;const title=document.getElementById('pubJobTitle').value.trim();if(!title){toast('Title required');return;}const sk=document.getElementById('pubJobSkills').value.split(',').map(s=>s.trim()).filter(Boolean);const d={title,company:document.getElementById('pubJobCompany').value,location:document.getElementById('pubJobLocation').value,salary:document.getElementById('pubJobSalary').value,desc:stripHtml(document.getElementById('pubJobDesc').value),skills:sk};try{if(id){await aput('public.php?type=jobs',{...d,id});Object.assign(S.pJobs.find(j=>+j.id===+id),d);}else{const r=await ap('public.php?type=jobs',d);S.pJobs.unshift({...d,id:r.id});}closeModal('pubJobModal');renderWebsite();toast('Saved');}catch(x){toast('Error: '+x.message);}}
 async function deletePubJob(id){if(!confirm('Remove?'))return;try{await adel('public.php?type=jobs&id='+id);S.pJobs=S.pJobs.filter(j=>+j.id!==+id);renderWebsite();toast('Removed');}catch(x){toast('Error: '+x.message);}}
 function editPubJob(id){openPubJobModal(id);}
 function openPubCandModal(id){const c=id?S.pCands.find(x=>+x.id===+id):null;document.getElementById('pubCandModalTitle').textContent=c?'Edit Profile':'Add Profile';document.getElementById('pubCandId').value=c?c.id:'';document.getElementById('pubCandName').value=c?c.name||'':'';document.getElementById('pubCandRole').value=c?c.role||'':'';document.getElementById('pubCandLocation').value=c?c.location||'':'';document.getElementById('pubCandExp').value=c?c.exp||c.experience||'':'';document.getElementById('pubCandSkills').value=(c&&c.skills?c.skills.join(', '):'');document.getElementById('pubCandHighlight').value=c?c.highlight||'':'';showModal('pubCandModal');}
