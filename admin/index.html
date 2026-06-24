@@ -1030,29 +1030,32 @@ function clearChatHistory(){chatHist=[];localStorage.removeItem(CHAT_KEY);docume
 function updateChatContext(){document.getElementById('chatContext').textContent=`Context: ${S.jobs.length} jobs · ${S.candidates.length} candidates · ${S.pJobs.length} public` + (aiProvider==='kimi'?' · Kimi AI':' · OpenAI');}
 function quickChat(t){document.getElementById('chatInput').value=t;document.getElementById('chatInput').focus();}
 
+// Find a job mentioned in a text string (for chat context resolution)
+function findJobInText(text){
+  if(!text||!S.jobs.length)return null;
+  const t=text.toLowerCase();
+  // Full title or company match
+  let match=S.jobs.find(j=>{
+    const jt=(j.title||'').toLowerCase();
+    const jc=(j.company||'').toLowerCase();
+    return t.includes(jt)||t.includes(jc)||t.includes('this job')||t.includes('that job')||t.includes('the position');
+  });
+  if(match)return match;
+  // Keyword match (words > 3 chars)
+  match=S.jobs.find(j=>{
+    const titleWords=(j.title||'').toLowerCase().split(' ').filter(w=>w.length>3);
+    return titleWords.some(w=>t.includes(w));
+  });
+  return match||null;
+}
+
 function buildSysPrompt(){
   // Track which job was most recently mentioned in chat
   const recentUserMsgs=chatHist.filter(m=>m.role==='user').slice(-6);
   let lastJob=null;
   for(const msg of recentUserMsgs){
-    const t=msg.text.toLowerCase();
-    const matchedJob=S.jobs.find(j=>{
-      const jt=(j.title||'').toLowerCase();
-      const jc=(j.company||'').toLowerCase();
-      return t.includes(jt)||t.includes(jc)||t.includes('this job')||t.includes('that job')||t.includes('the position');
-    });
+    const matchedJob=findJobInText(msg.text);
     if(matchedJob){lastJob=matchedJob;break;}
-  }
-  // Also check if user said "tax manager" or similar role keywords
-  if(!lastJob){
-    for(const msg of recentUserMsgs){
-      const t=msg.text.toLowerCase();
-      const matchedJob=S.jobs.find(j=>{
-        const titleWords=(j.title||'').toLowerCase().split(' ').filter(w=>w.length>3);
-        return titleWords.some(w=>t.includes(w));
-      });
-      if(matchedJob){lastJob=matchedJob;break;}
-    }
   }
   // Update global tracking
   if(lastJob)_lastDiscussedJobId=lastJob.id;
@@ -1175,13 +1178,29 @@ let _lastJobId=null,_lastCandId=null,_lastDiscussedJobId=null;
 
 async function execAction(a){
   const d=a.data;
-  // For createCandidate: ALWAYS use the most recently discussed job.
-  // The AI often picks wrong job IDs from the full job list - we know which
-  // job was discussed, so we force it. Never trust the AI's job ID.
-  if(a.type==='createCandidate'&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
-  // For other cases, resolve linkedJobId:0 as before
-  else if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
-  else if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id; // fallback: first job
+  // SMART JOB LINKING for createCandidate:
+  // 1. Check if user EXPLICITLY named a job in their last message → trust that
+  // 2. AI sent linkedJobId:0 → use most recently discussed job
+  // 3. AI sent specific ID matching discussed job → trust it
+  // 4. AI sent specific ID DIFFERENT from discussed job → AI is confused, override
+  // This covers both workflows: "screen against this job" AND "which job fits?"
+  if(a.type==='createCandidate'){
+    const lastUserMsg=chatHist.filter(m=>m.role==='user').pop();
+    const userPickedJob=lastUserMsg?findJobInText(lastUserMsg.text):null;
+    if(userPickedJob){
+      d.linkedJobId=userPickedJob.id; // User explicitly named a job
+    }else if(d.linkedJobId===0&&_lastDiscussedJobId){
+      d.linkedJobId=_lastDiscussedJobId; // Auto-link to discussed job
+    }else if(d.linkedJobId===0&&S.jobs.length){
+      d.linkedJobId=S.jobs[0].id; // Fallback: first job
+    }else if(d.linkedJobId>0&&_lastDiscussedJobId&&d.linkedJobId!==_lastDiscussedJobId){
+      d.linkedJobId=_lastDiscussedJobId; // AI confused, force discussed job
+    }
+  }else{
+    // For other actions: resolve linkedJobId:0 as before
+    if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
+    else if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id;
+  }
   if(d.linkedJobId===-1)d.linkedJobId=null;
   
   if(a.type==='createJob'){
