@@ -1161,11 +1161,18 @@ function renderChatMsg(m,i){
       const sum=a.type==='createJob'?`"${a.data.title||'?'}"`:a.type==='createCandidate'?`"${a.data.name||'?'}"`:a.type;
       html+=`<div class="ac" id="ac-${i}-${ai}"><div class="acl">&#128221; ${esc(a.type)}: ${esc(sum)}</div><div style="display:flex;gap:6px"><button class="btn btn-s btn-xs" onclick="confirmAction(${i},${ai})">&#10003; Confirm</button><button class="btn btn-g btn-xs" onclick="dismissAction(${i},${ai})">&#10007; Dismiss</button></div></div>`;
     });
-  } else if(m.role==='assistant'&&!isE&&(m.text.match(/would you like/i)||m.text.match(/shall i add/i)||m.text.match(/want me to add/i))){
-    // AI asked if user wants to add — show Yes/No buttons
+  } else if(m.role==='assistant'&&!isE&&(m.text.match(/would you like/i)||m.text.match(/shall i add/i)||m.text.match(/want me to add/i)||m.text.match(/add this/i))){
+    // AI asked if user wants to add — show context-aware Yes/No buttons
     const isCand=m.text.match(/candidate/i);
     const isJob=m.text.match(/job/i);
-    html+=`<div class="ac"><div style="color:var(--gold);font-size:.8rem;margin-bottom:6px">&#128221; Confirm action:</div><div style="display:flex;gap:6px"><button class="btn btn-s btn-xs" onclick="confirmAdd(${i},'${isCand?'candidate':isJob?'job':'candidate'}')">&#10003; Yes, Add</button><button class="btn btn-g btn-xs" onclick="dismissAdd(${i})">&#10007; No</button></div></div>`;
+    // Extract score from message if present (e.g., "Score: 40/100")
+    const scoreMatch=m.text.match(/Score:\s*(\d+)/i);
+    const score=scoreMatch?parseInt(scoreMatch[1]):null;
+    const isLowScore=score!==null&&score<50;
+    const type=isCand?'candidate':isJob?'job':'candidate';
+    const yesLabel=type==='candidate'?(isLowScore?'&#10003; Save Anyway (low match)':'&#10003; Save to Database'):'&#10003; Add to Job List';
+    const noLabel=type==='candidate'?'&#10007; Don\'t Save':'&#10007; Skip';
+    html+=`<div class="ac" id="ac-add-${i}"><div style="color:var(--gold);font-size:.8rem;margin-bottom:6px">&#128221; ${type==='candidate'?'Save candidate to database?':'Add job to database?'}</div><div style="display:flex;gap:6px"><button class="btn ${isLowScore?'btn-d':'btn-s'} btn-xs" onclick="confirmAdd(${i},'${type}')">${yesLabel}</button><button class="btn btn-g btn-xs" onclick="dismissAdd(${i})">${noLabel}</button></div></div>`;
   } else if(m.role==='assistant'&&!isE&&m.text.match(/creat|add|put/)&&m.text.match(/candidate|job|list/)){
     const isCand=m.text.match(/candidate/i);
     html+=`<div class="ac"><div style="color:var(--gold);font-size:.8rem">&#9888; Action block missing — create manually:</div><button class="btn btn-p btn-xs" onclick="${isCand?'openCandModal()':'openJobModal()'}" style="margin-top:4px">+ Create ${isCand?'Candidate':'Job'}</button></div>`;
@@ -1241,16 +1248,29 @@ async function execAction(a){
   throw new Error('Unknown: '+a.type);
 }
 async function confirmAdd(mi,type){
+  // Show "Processing..." feedback immediately
+  const el=document.getElementById('ac-add-'+mi);
+  if(el)el.innerHTML='<div style="color:var(--gold);font-size:.8rem;padding:4px 0"><span class="sp"></span> Processing...</div>';
   // Send a strong confirmation message that forces the AI to use the tool
-  const strongMsg=`YES, ${type==='candidate'?'add this candidate to the database':'add this job to the database'} now. Use the create${type==='candidate'?'Candidate':'Job'} tool and include ALL details from our conversation.`;
+  const strongMsg=`YES, ${type==='candidate'?'save this candidate to the database':'add this job to the database'} now. Use the create${type==='candidate'?'Candidate':'Job'} tool and include ALL details from our conversation.`;
   document.getElementById('chatInput').value=strongMsg;
   await sendChat();
 }
 function dismissAdd(mi){
-  // Just mark as dismissed visually
-  const msgs=document.getElementById('chatMessages').querySelectorAll('.msg');
-  const target=msgs[mi];if(!target)return;
-  const acEl=target.querySelector('.ac');if(acEl)acEl.outerHTML='<div class="ac"><div style="color:var(--text3);font-size:.8rem">&#10007; Skipped</div></div>';
+  // Mark as dismissed with clear feedback
+  const el=document.getElementById('ac-add-'+mi);
+  if(el){
+    el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:4px 0">&#10007; Not saved. Say something else to continue.</div>';
+    el.style.opacity='0.6';
+  }else{
+    // Fallback: try finding by index
+    const msgs=document.getElementById('chatMessages').querySelectorAll('.msg');
+    const target=msgs[mi];if(!target)return;
+    const acEl=target.querySelector('.ac');if(acEl){
+      acEl.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:4px 0">&#10007; Not saved. Say something else to continue.</div>';
+      acEl.style.opacity='0.6';
+    }
+  }
 }
 async function confirmAction(mi,ai){
   const m=chatHist[mi];if(!m||!m.actions)return;
