@@ -1175,8 +1175,12 @@ let _lastJobId=null,_lastCandId=null,_lastDiscussedJobId=null;
 
 async function execAction(a){
   const d=a.data;
-  // Resolve linkedJobId:0 to actual job based on recent chat context
-  if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
+  // For createCandidate: ALWAYS use the most recently discussed job.
+  // The AI often picks wrong job IDs from the full job list - we know which
+  // job was discussed, so we force it. Never trust the AI's job ID.
+  if(a.type==='createCandidate'&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
+  // For other cases, resolve linkedJobId:0 as before
+  else if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
   else if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id; // fallback: first job
   if(d.linkedJobId===-1)d.linkedJobId=null;
   
