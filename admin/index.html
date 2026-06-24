@@ -1169,14 +1169,15 @@ function renderChatMsg(m,i){
     // AI asked if user wants to add — show context-aware Yes/No buttons
     const isCand=m.text.match(/candidate/i);
     const isJob=m.text.match(/job/i);
-    // Extract score from message if present (e.g., "Score: 40/100")
     const scoreMatch=m.text.match(/Score:\s*(\d+)/i);
     const score=scoreMatch?parseInt(scoreMatch[1]):null;
     const isLowScore=score!==null&&score<50;
     const type=isCand?'candidate':isJob?'job':'candidate';
     const yesLabel=type==='candidate'?(isLowScore?'&#10003; Save Anyway (low match)':'&#10003; Save to Database'):'&#10003; Add to Job List';
     const noLabel=type==='candidate'?'&#10007; Don\'t Save':'&#10007; Skip';
-    html+=`<div class="ac" id="ac-add-${i}"><div style="color:var(--gold);font-size:.8rem;margin-bottom:6px">&#128221; ${type==='candidate'?'Save candidate to database?':'Add job to database?'}</div><div style="display:flex;gap:6px"><button class="btn ${isLowScore?'btn-d':'btn-s'} btn-xs" onclick="confirmAdd(${i},'${type}')">${yesLabel}</button><button class="btn btn-g btn-xs" onclick="dismissAdd(${i})">${noLabel}</button></div></div>`;
+    // Pass the current discussed job ID explicitly so confirmAdd knows which job to use
+    const jobId=_lastDiscussedJobId||0;
+    html+=`<div class="ac" id="ac-add-${i}"><div style="color:var(--gold);font-size:.8rem;margin-bottom:6px">&#128221; ${type==='candidate'?'Save candidate to database?':'Add job to database?'}</div><div style="display:flex;gap:6px"><button class="btn ${isLowScore?'btn-d':'btn-s'} btn-xs" onclick="confirmAdd(${i},'${type}',${jobId})">${yesLabel}</button><button class="btn btn-g btn-xs" onclick="dismissAdd(${i})">${noLabel}</button></div></div>`;
   } else if(m.role==='assistant'&&!isE&&m.text.match(/creat|add|put/)&&m.text.match(/candidate|job|list/)){
     const isCand=m.text.match(/candidate/i);
     html+=`<div class="ac"><div style="color:var(--gold);font-size:.8rem">&#9888; Action block missing — create manually:</div><button class="btn btn-p btn-xs" onclick="${isCand?'openCandModal()':'openJobModal()'}" style="margin-top:4px">+ Create ${isCand?'Candidate':'Job'}</button></div>`;
@@ -1197,8 +1198,13 @@ async function execAction(a){
   // This covers both workflows: "screen against this job" AND "which job fits?"
   if(a.type==='createCandidate'){
     const lastUserMsg=chatHist.filter(m=>m.role==='user').pop();
+    // Check if user explicitly mentioned a job ID like "job ID:12345" or "linkedJobId:12345"
+    const explicitIdMatch=lastUserMsg?lastUserMsg.text.match(/(?:job\s*ID|linkedJobId)[:\s]*(\d+)/i):null;
+    const explicitJobId=explicitIdMatch?parseInt(explicitIdMatch[1]):null;
     const userPickedJob=lastUserMsg?findJobInText(lastUserMsg.text):null;
-    if(userPickedJob){
+    if(explicitJobId&&S.jobs.find(j=>+j.id===+explicitJobId)){
+      d.linkedJobId=explicitJobId; // User explicitly specified job ID
+    }else if(userPickedJob){
       d.linkedJobId=userPickedJob.id; // User explicitly named a job
     }else if(d.linkedJobId===0&&_lastDiscussedJobId){
       d.linkedJobId=_lastDiscussedJobId; // Auto-link to discussed job
@@ -1251,14 +1257,26 @@ async function execAction(a){
   }
   throw new Error('Unknown: '+a.type);
 }
-async function confirmAdd(mi,type){
+async function confirmAdd(mi,type,jobId){
   // Show "Processing..." feedback immediately
   const el=document.getElementById('ac-add-'+mi);
   if(el)el.innerHTML='<div style="color:var(--gold);font-size:.8rem;padding:4px 0"><span class="sp"></span> Processing...</div>';
-  // Send a strong confirmation message that forces the AI to use the tool
-  const strongMsg=`YES, ${type==='candidate'?'save this candidate to the database':'add this job to the database'} now. Use the create${type==='candidate'?'Candidate':'Job'} tool and include ALL details from our conversation.`;
+  // Build a message that explicitly names the job so the AI links correctly
+  let strongMsg;
+  if(type==='candidate'&&jobId){
+    const job=S.jobs.find(j=>+j.id===+jobId);
+    const jobName=job?`${job.title} at ${job.company||'?'}`:`job #${jobId}`;
+    strongMsg=`YES, save this candidate to the database and link them to the ${jobName} position (job ID:${jobId}). Use the createCandidate tool with linkedJobId:${jobId} and include ALL details from our conversation.`;
+  }else{
+    strongMsg=`YES, ${type==='candidate'?'save this candidate to the database':'add this job to the database'} now. Use the create${type==='candidate'?'Candidate':'Job'} tool and include ALL details from our conversation.`;
+  }
   document.getElementById('chatInput').value=strongMsg;
   await sendChat();
+  // Clear processing spinner if still showing (action result will show on AI response)
+  const el2=document.getElementById('ac-add-'+mi);
+  if(el2&&el2.innerHTML.includes('Processing')){
+    el2.style.display='none';
+  }
 }
 function dismissAdd(mi){
   // Mark as dismissed with clear feedback, auto-hide after 5s
