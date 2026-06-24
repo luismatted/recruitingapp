@@ -186,6 +186,9 @@ textarea.inp{resize:vertical;min-height:60px}
 </head>
 <body>
 
+<!-- Cache buster: force reload on new deploys -->
+<script>(function(){var v='2.1b',k='ce_version',s=localStorage.getItem(k);if(s&&s!==v){localStorage.setItem(k,v);location.reload(true)}localStorage.setItem(k,v)})();</script>
+
 <!-- ==================== LOGIN ==================== -->
 <div id="loginScreen">
   <div class="login-box">
@@ -559,7 +562,7 @@ function hp(pw){let h=0;for(let i=0;i<pw.length;i++){h=((h<<5)-h)+pw.charCodeAt(
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
 function au(p){const sep=p.includes('?')?'&':'?';return`${API}/${p}${sep}auth=${encodeURIComponent(authHash)}`;}
-async function ag(p){const r=await fetch(au(p));const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
+async function ag(p){const r=await fetch(au(p),{cache:'no-store'});const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
 async function ap(p,b){const r=await fetch(au(p),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
 async function aput(p,b){const r=await fetch(au(p),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
 async function adel(p){const r=await fetch(au(p),{method:'DELETE'});const j=await r.json();if(j&&j.error)throw new Error(j.error);return j;}
@@ -629,8 +632,8 @@ async function refreshAll(){
     const[j,c]=await Promise.all([ag('jobs.php'),ag('candidates.php')]);
     S.jobs=Array.isArray(j.jobs)?j.jobs:[];
     S.candidates=Array.isArray(c.candidates)?c.candidates:[];
-    try{const pj=await fetch(`${API}/public.php?type=jobs`).then(r=>r.json());S.pJobs=Array.isArray(pj.jobs)?pj.jobs:[];}catch(e){S.pJobs=[];}
-    try{const pc=await fetch(`${API}/public.php?type=candidates`).then(r=>r.json());S.pCands=Array.isArray(pc.candidates)?pc.candidates:[];}catch(e){S.pCands=[];}
+    try{const pj=await fetch(`${API}/public.php?type=jobs`,{cache:'no-store'}).then(r=>r.json());S.pJobs=Array.isArray(pj.jobs)?pj.jobs:[];}catch(e){S.pJobs=[];}
+    try{const pc=await fetch(`${API}/public.php?type=candidates`,{cache:'no-store'}).then(r=>r.json());S.pCands=Array.isArray(pc.candidates)?pc.candidates:[];}catch(e){S.pCands=[];}
     updateDash();renderJobList();renderCandList();renderScreenings();renderWebsite();updateChatContext();
   }catch(x){toast('Refresh error: '+x.message);}
 }
@@ -641,7 +644,7 @@ async function refreshAll(){
   const fromLS=localStorage.getItem(AUTH_KEY);
   authHash=fromSS||fromLS||'';
   if(authHash&&isSessionValid()){
-    fetch(`${API}/auth.php?auth=${encodeURIComponent(authHash)}`).then(r=>r.json()).then(d=>{
+    fetch(`${API}/auth.php?auth=${encodeURIComponent(authHash)}`,{cache:'no-store'}).then(r=>r.json()).then(d=>{
       if(d&&d.authenticated){initApp();}else{authHash='';}
     }).catch(()=>{});
   }

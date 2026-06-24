@@ -1,0 +1,27 @@
+# Disable all caching for admin panel
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive Off
+</IfModule>
+
+# Prevent browser from caching
+<FilesMatch "\.(html|htm|js|css)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-store, no-cache, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </IfModule>
+</FilesMatch>
+
+# Enable rewrite for cache-busting URLs
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Strip version query from URLs like index.html?v=2.1b
+    RewriteCond %{QUERY_STRING} ^v=
+    RewriteRule ^(.*)$ /$1? [R=301,L]
+</IfModule>
