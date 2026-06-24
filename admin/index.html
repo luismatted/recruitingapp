@@ -1093,7 +1093,11 @@ AFTER SCREENING — Always ask:
 
 WHEN USER SAYS YES — IMMEDIATELY call the createCandidate tool with ALL details from the CV. Then call the screenCandidate tool to save the screening.
 
-CRITICAL: When creating a candidate with linkedJobId:0, the system will auto-link to job ID:${lastJob?lastJob.id:'first job'}.
+CRITICAL RULES FOR TOOL USAGE:
+- You MUST call the createJob tool to create a job. Saying "Done" in text does NOT create anything.
+- You MUST call the createCandidate tool to add a candidate. Text responses alone do NOT save to the database.
+- NEVER say "Done" or "Added" unless you have actually called the tool and received a success response.
+- ALWAYS call the tool. Text without tool calls has zero effect.
 
 INTERNAL JOBS (${S.jobs.length}):
 ${jx||'(none)'}
@@ -1257,18 +1261,19 @@ async function confirmAdd(mi,type){
   await sendChat();
 }
 function dismissAdd(mi){
-  // Mark as dismissed with clear feedback
+  // Mark as dismissed with clear feedback, auto-hide after 5s
   const el=document.getElementById('ac-add-'+mi);
   if(el){
-    el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:4px 0">&#10007; Not saved. Say something else to continue.</div>';
+    el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:4px 0">&#10007; Not saved.</div>';
     el.style.opacity='0.6';
+    setTimeout(()=>{if(el)el.style.display='none';},5000);
   }else{
-    // Fallback: try finding by index
     const msgs=document.getElementById('chatMessages').querySelectorAll('.msg');
     const target=msgs[mi];if(!target)return;
     const acEl=target.querySelector('.ac');if(acEl){
-      acEl.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:4px 0">&#10007; Not saved. Say something else to continue.</div>';
+      acEl.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:4px 0">&#10007; Not saved.</div>';
       acEl.style.opacity='0.6';
+      setTimeout(()=>{if(acEl)acEl.style.display='none';},5000);
     }
   }
 }
