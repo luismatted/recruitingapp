@@ -1064,7 +1064,7 @@ RULES:
 - Flag title inflation, detect hidden gems (ERP, SOX, M&A, go-live)
 - Explain in 2-3 sentences max
 - ALWAYS extract ALL possible fields from CVs and JDs (skills, seniority, languages, industry, etc.)
-- ALSO extract PROFESSIONAL MATCH fields: keyAchievements, projectTypes, industryDepth, managementScope, redFlags, hiddenGems for candidates; mustHaveSkills, niceToHaveSkills, dealBreakers, cultureFit for jobs`
+- ALSO extract PROFESSIONAL MATCH fields: keyAchievements, projectTypes, industryDepth, managementScope, redFlags, hiddenGems for candidates; mustHaveSkills, niceToHaveSkills, dealBreakers, cultureFit for jobs
 
 MOST RECENTLY DISCUSSED JOB: ${lastJob?lastJob.title+' (ID:'+lastJob.id+')':'None detected. Use linkedJobId:0 for first job.'}
 
@@ -1301,4 +1301,10 @@ async function savePubJob(){const id=document.getElementById('pubJobId').value;c
 async function deletePubJob(id){if(!confirm('Remove?'))return;try{await adel('public.php?type=jobs&id='+id);S.pJobs=S.pJobs.filter(j=>+j.id!==+id);renderWebsite();toast('Removed');}catch(x){toast('Error: '+x.message);}}
 function editPubJob(id){openPubJobModal(id);}
 function openPubCandModal(id){const c=id?S.pCands.find(x=>+x.id===+id):null;document.getElementById('pubCandModalTitle').textContent=c?'Edit Profile':'Add Profile';document.getElementById('pubCandId').value=c?c.id:'';document.getElementById('pubCandName').value=c?c.name||'':'';document.getElementById('pubCandRole').value=c?c.role||'':'';document.getElementById('pubCandLocation').value=c?c.location||'':'';document.getElementById('pubCandExp').value=c?c.exp||c.experience||'':'';document.getElementById('pubCandSkills').value=(c&&c.skills?c.skills.join(', '):'');document.getElementById('pubCandHighlight').value=c?c.highlight||'':'';showModal('pubCandModal');}
-async function savePubCand(){const id=document.getElementById('pubCandId').value;const name=document.getElementById('pubCandName').value.trim();if(!name){toast('Name required');return;}const sk=document.getElementById('pubCandSkills').value.split(',').map(s=>s.trim()).filter(Boolean);const d={name,role:document.getElementById('pubCandRole').value,location:document.getElementById('pubCandLocation').value,exp:document.getElementById('pubCandExp').
+async function savePubCand(){const id=document.getElementById('pubCandId').value;const name=document.getElementById('pubCandName').value.trim();if(!name){toast('Name required');return;}const sk=document.getElementById('pubCandSkills').value.split(',').map(s=>s.trim()).filter(Boolean);const d={name,role:document.getElementById('pubCandRole').value,location:document.getElementById('pubCandLocation').value,exp:document.getElementById('pubCandExp').value,highlight:document.getElementById('pubCandHighlight').value,skills:sk};try{if(id){await aput('public.php?type=candidates',{...d,id});Object.assign(S.pCands.find(c=>+c.id===+id),d);}else{const r=await ap('public.php?type=candidates',d);S.pCands.unshift({...d,id:r.id});}closeModal('pubCandModal');renderWebsite();toast('Saved');}catch(x){toast('Error: '+x.message);}}
+async function deletePubCand(id){if(!confirm('Remove?'))return;try{await adel('public.php?type=candidates&id='+id);S.pCands=S.pCands.filter(c=>+c.id!==+id);renderWebsite();toast('Removed');}catch(x){toast('Error: '+x.message);}}
+function editPubCand(id){openPubCandModal(id);}
+</script>
+
+</body>
+</html>
