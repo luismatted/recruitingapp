@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>TalentAI Admin - Crossing Education</title>
+<!-- v20250624-PlanB -->
 <link rel="icon" type="image/png" href="../logo.png">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -198,6 +202,7 @@ textarea.inp{resize:vertical;min-height:60px}
       <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
     </form>
     <p class="login-hint">Default password: talent2025</p>
+    <p class="login-hint" style="font-size:.7rem;opacity:.5;margin-top:8px">v2.1b</p>
   </div>
 </div>
 
@@ -534,6 +539,7 @@ textarea.inp{resize:vertical;min-height:60px}
 </div>
 
 <script>
+console.log('[TalentAI] JS loaded v2.1b');
 // ==================== CONFIG ====================
 const API='../api';
 const AUTH_KEY='ce_admin_auth';
@@ -597,11 +603,13 @@ document.getElementById('loginForm').addEventListener('submit',async function(e)
   err.style.display='none';btn.disabled=true;btn.innerHTML='<span class="sp"></span> Signing in...';
   const hash=hp(pw);
   try{
+    console.log('[LOGIN] Sending hash:',hash,'to',`${API}/auth.php`);
     const r=await fetch(`${API}/auth.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hash})});
     const d=await r.json();
+    console.log('[LOGIN] Response:',d);
     if(d.authenticated){authHash=hash;setSession(remember);initApp();}
     else{err.textContent='Incorrect password. Default is: talent2025';err.style.display='block';}
-  }catch(x){err.textContent='Error: '+x.message;err.style.display='block';}
+  }catch(x){console.error('[LOGIN] Error:',x);err.textContent='Error: '+x.message;err.style.display='block';}
   btn.disabled=false;btn.textContent='Sign In';
 });
 function logout(){
