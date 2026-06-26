@@ -1198,20 +1198,29 @@ async function execAction(a){
   // This covers both workflows: "screen against this job" AND "which job fits?"
   if(a.type==='createCandidate'){
     const lastUserMsg=chatHist.filter(m=>m.role==='user').pop();
-    // Check if user explicitly mentioned a job ID like "job ID:12345" or "linkedJobId:12345"
-    const explicitIdMatch=lastUserMsg?lastUserMsg.text.match(/(?:job\s*ID|linkedJobId)[:\s]*(\d+)/i):null;
-    const explicitJobId=explicitIdMatch?parseInt(explicitIdMatch[1]):null;
-    const userPickedJob=lastUserMsg?findJobInText(lastUserMsg.text):null;
-    if(explicitJobId&&S.jobs.find(j=>+j.id===+explicitJobId)){
-      d.linkedJobId=explicitJobId; // User explicitly specified job ID
-    }else if(userPickedJob){
-      d.linkedJobId=userPickedJob.id; // User explicitly named a job
-    }else if(d.linkedJobId===0&&_lastDiscussedJobId){
-      d.linkedJobId=_lastDiscussedJobId; // Auto-link to discussed job
-    }else if(d.linkedJobId===0&&S.jobs.length){
-      d.linkedJobId=S.jobs[0].id; // Fallback: first job
-    }else if(d.linkedJobId>0&&_lastDiscussedJobId&&d.linkedJobId!==_lastDiscussedJobId){
-      d.linkedJobId=_lastDiscussedJobId; // AI confused, force discussed job
+    const userText=lastUserMsg?lastUserMsg.text.toLowerCase():'';
+    // Check if user explicitly said NO job assignment (e.g. "do not assign any job", "no job")
+    const noJobIntent=userText.match(/(?:do not|don't|dont|never|without)\s+(?:assign|link|give|attach)/)||
+                      userText.match(/(?:no|without)\s+(?:job|assignment|link)/)||
+                      userText.match(/(?:unassigned|no link|no assign)/);
+    if(noJobIntent){
+      d.linkedJobId=-1; // User explicitly said no job assignment
+    }else{
+      // Check if user explicitly mentioned a job ID like "job ID:12345" or "linkedJobId:12345"
+      const explicitIdMatch=lastUserMsg?lastUserMsg.text.match(/(?:job\s*ID|linkedJobId)[:\s]*(\d+)/i):null;
+      const explicitJobId=explicitIdMatch?parseInt(explicitIdMatch[1]):null;
+      const userPickedJob=lastUserMsg?findJobInText(lastUserMsg.text):null;
+      if(explicitJobId&&S.jobs.find(j=>+j.id===+explicitJobId)){
+        d.linkedJobId=explicitJobId; // User explicitly specified job ID
+      }else if(userPickedJob){
+        d.linkedJobId=userPickedJob.id; // User explicitly named a job
+      }else if(d.linkedJobId===0&&_lastDiscussedJobId){
+        d.linkedJobId=_lastDiscussedJobId; // Auto-link to discussed job
+      }else if(d.linkedJobId===0&&S.jobs.length){
+        d.linkedJobId=S.jobs[0].id; // Fallback: first job
+      }else if(d.linkedJobId>0&&_lastDiscussedJobId&&d.linkedJobId!==_lastDiscussedJobId){
+        d.linkedJobId=_lastDiscussedJobId; // AI confused, force discussed job
+      }
     }
   }else{
     // For other actions: resolve linkedJobId:0 as before
