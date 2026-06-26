@@ -1192,6 +1192,8 @@ function renderChatMsg(m,i){
 
 // Track last created IDs for action chaining
 let _lastJobId=null,_lastCandId=null,_lastDiscussedJobId=null;
+// Track last candidate evaluation context for direct save (bypass AI hallucination)
+let _lastCvText='',_lastCandName='';
 
 async function execAction(a){
   const d=a.data;
@@ -1220,7 +1222,7 @@ async function execAction(a){
   }
   if(a.type==='screenCandidate'){
     const cid=+d.candidateId||_lastCandId;
-    if(!cid)throw new Error('No candidate ID');
+    if(!cid)throw new Error('No candidate selected. Save a candidate first, then ask me to screen them.');
     const result=await doScreening(cid);
     return`Screened: ${result.verdict} (${result.score}%)`;
   }
@@ -1234,24 +1236,33 @@ async function execAction(a){
   throw new Error('Unknown: '+a.type);
 }
 async function confirmAdd(mi,type,jobId){
-  // Show "Processing..." feedback immediately
   const el=document.getElementById('ac-add-'+mi);
-  if(el)el.innerHTML='<div style="color:var(--gold);font-size:.8rem;padding:4px 0"><span class="sp"></span> Processing...</div>';
-  // Build a message that explicitly names the job so the AI links correctly
-  let strongMsg;
-  if(type==='candidate'&&jobId){
-    const job=S.jobs.find(j=>+j.id===+jobId);
-    const jobName=job?`${job.title} at ${job.company||'?'}`:`job #${jobId}`;
-    strongMsg=`YES, save this candidate to the database and link them to the ${jobName} position (job ID:${jobId}). Use the createCandidate tool with linkedJobId:${jobId} and include ALL details from our conversation.`;
+  if(el)el.innerHTML='<div style="color:var(--gold);font-size:.8rem;padding:4px 0"><span class="sp"></span> Saving...</div>';
+  
+  if(type==='candidate'){
+    // DIRECT SAVE: bypass AI tool calling which often hallucinates "Done"
+    // Extract candidate name and CV text from chat history
+    const userMsgs=chatHist.filter(m=>m.role==='user');
+    const cvMsg=userMsgs.reverse().find(m=>m.text.length>300); // CV text is long
+    const cvText=cvMsg?cvMsg.text:'';
+    // Extract name from first non-empty line of CV
+    const name=(cvText.split('\n').map(l=>l.trim()).find(l=>l.length>0)||'Unknown').substring(0,100);
+    try{
+      const action={type:'createCandidate',data:{name,cvText,linkedJobId:jobId||-1}};
+      const result=await execAction(action);
+      if(el)el.innerHTML='<div style="color:var(--green);font-size:.8rem;padding:4px 0">&#10003; Saved. Ask me to extract more details or screen against a job.</div>';
+      toast(result);
+    }catch(e){
+      if(el)el.innerHTML='<div style="color:var(--red);font-size:.8rem;padding:4px 0">&#10007; '+esc(e.message)+'</div>';
+      toast('Error: '+e.message);
+    }
   }else{
-    strongMsg=`YES, ${type==='candidate'?'save this candidate to the database':'add this job to the database'} now. Use the create${type==='candidate'?'Candidate':'Job'} tool and include ALL details from our conversation.`;
-  }
-  document.getElementById('chatInput').value=strongMsg;
-  await sendChat();
-  // Clear processing spinner if still showing (action result will show on AI response)
-  const el2=document.getElementById('ac-add-'+mi);
-  if(el2&&el2.innerHTML.includes('Processing')){
-    el2.style.display='none';
+    // For jobs: still use AI since job fields need parsing
+    const strongMsg=`YES, add this job to the database now. Use the createJob tool and include ALL details from our conversation.`;
+    document.getElementById('chatInput').value=strongMsg;
+    await sendChat();
+    const el2=document.getElementById('ac-add-'+mi);
+    if(el2&&el2.innerHTML.includes('Saving')) el2.style.display='none';
   }
 }
 function dismissAdd(mi){
