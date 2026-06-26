@@ -34,7 +34,11 @@ try {
             ? json_encode($d['parsedData']) 
             : (isset($d['parsed_data']) ? (is_string($d['parsed_data']) ? $d['parsed_data'] : json_encode($d['parsed_data'])) : '{}');
         
-        $stmt = $db->prepare("INSERT INTO `jobs` (`title`, `company`, `location`, `salary`, `description`, `status`, `parsed_data`) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        // Auto-assign next display_order
+        $maxOrder = $db->query("SELECT MAX(display_order) FROM jobs")->fetchColumn() ?: 0;
+        $displayOrder = (int)$maxOrder + 1;
+        
+        $stmt = $db->prepare("INSERT INTO `jobs` (`title`, `company`, `location`, `salary`, `description`, `status`, `parsed_data`, `display_order`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             trim($d['title']),
             trim($d['company'] ?? ''),
@@ -42,11 +46,12 @@ try {
             trim($d['salary'] ?? ''),
             $d['description'] ?? '',
             $d['status'] ?? 'active',
-            $parsedData
+            $parsedData,
+            $displayOrder
         ]);
         
         $id = (int)$db->lastInsertId();
-        jsonOk(['success' => true, 'id' => $id]);
+        jsonOk(['success' => true, 'id' => $id, 'displayOrder' => $displayOrder]);
     }
     
     // UPDATE

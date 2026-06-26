@@ -120,6 +120,7 @@ function normalizeKeys(array $row): array {
         'candidate_id' => 'candidateId',
         'job_id' => 'jobId',
         'key_strength' => 'keyStrength',
+        'display_order' => 'displayOrder',
     ];
     
     $result = [];

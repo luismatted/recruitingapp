@@ -632,6 +632,7 @@ async function refreshAll(){
     const[j,c]=await Promise.all([ag('jobs.php'),ag('candidates.php')]);
     S.jobs=Array.isArray(j.jobs)?j.jobs:[];
     S.candidates=Array.isArray(c.candidates)?c.candidates:[];
+    buildDisplayIdMap(); // Build display # → real ID mapping after jobs load
     try{const pj=await fetch(`${API}/public.php?type=jobs`,{cache:'no-store'}).then(r=>r.json());S.pJobs=Array.isArray(pj.jobs)?pj.jobs:[];}catch(e){S.pJobs=[];}
     try{const pc=await fetch(`${API}/public.php?type=candidates`,{cache:'no-store'}).then(r=>r.json());S.pCands=Array.isArray(pc.candidates)?pc.candidates:[];}catch(e){S.pCands=[];}
     updateDash();renderJobList();renderCandList();renderScreenings();renderWebsite();updateChatContext();
@@ -1060,12 +1061,15 @@ function buildSysPrompt(){
   // Update global tracking
   if(lastJob)_lastDiscussedJobId=lastJob.id;
   
-  const jx=S.jobs.map(j=>`Job #${j.id}: ${j.title} @${j.company||'?'} | ${j.location||'?'} | ${j.seniority||'?'} | ${j.industry||'?'} [${j.status}]
+  const jx=S.jobs.map(j=>{
+    const displayNum=j.displayOrder||j.id;
+    return `Job #${displayNum}: ${j.title} @${j.company||'?'} | ${j.location||'?'} | ${j.seniority||'?'} | ${j.industry||'?'} [${j.status}]
 Skills: ${(j.skills||[]).join(', ')}
 Must-Have: ${j.mustHaveSkills||'none defined'}
 Deal Breakers: ${j.dealBreakers||'none defined'}
 Lang: ${j.languageRequirements||'?'}
-${stripHtml(j.description||'').substring(0,200)}`).join('\n\n');
+${stripHtml(j.description||'').substring(0,200)}`;
+  }).join('\n\n');
   const cx=S.candidates.map(c=>`Candidate #${c.id}: ${c.name} | ${c.currentRole||'?'} @${c.currentCompany||'?'} | ${c.location||'?'} | ${c.seniority||'?'} | Score: ${c.screeningScore||'unscreened'} | ${c.screeningVerdict||'-'}
 Skills: ${(c.skills||[]).join(', ')}
 Gems: ${c.hiddenGems||'none identified'}
@@ -1080,7 +1084,7 @@ RULES:
 - ALWAYS extract ALL possible fields from CVs and JDs (skills, seniority, languages, industry, etc.)
 - ALSO extract PROFESSIONAL MATCH fields: keyAchievements, projectTypes, industryDepth, managementScope, redFlags, hiddenGems for candidates; mustHaveSkills, niceToHaveSkills, dealBreakers, cultureFit for jobs
 
-MOST RECENTLY DISCUSSED JOB: ${lastJob?lastJob.title+' (ID:'+lastJob.id+')':'None detected. Use linkedJobId:0 for first job.'}
+MOST RECENTLY DISCUSSED JOB: ${lastJob?lastJob.title+' (Job #'+(lastJob.displayOrder||lastJob.id)+')':'None detected. Use linkedJobId:0 for first job.'}
 
 SCREENING FORMAT — You MUST include ALL four sections:
 **Score: X/100**
@@ -1096,7 +1100,8 @@ WHEN USER SAYS YES — IMMEDIATELY call the createCandidate tool with ALL detail
 JOB LINKING RULES for createCandidate:
 - linkedJobId: 0 → auto-link to the most recently discussed job (default)
 - linkedJobId: -1 → do NOT assign any job (use when user says "no job" or "don't assign")
-- linkedJobId: specific number → only when user explicitly names a different job
+- linkedJobId: 1, 2, 3... → use the small Job # shown above (e.g., linkedJobId:2 for Job #2)
+- NEVER use large database IDs like 2147483651. ONLY use the small numbers (0, -1, 1, 2, 3...)
 
 CRITICAL RULES FOR TOOL USAGE:
 - You MUST call the createJob tool to create a job. Saying "Done" in text does NOT create anything.
@@ -1111,7 +1116,7 @@ CANDIDATES (${S.candidates.length}):
 ${cx||'(none)'}`;
 }
 
-const OAI_TOOLS=[{'type':'function','function':{'name':'createCandidate','description':'Add a candidate to the database. CALL THIS IMMEDIATELY when user says YES to adding a candidate. Extract ALL fields from the CV text. Set linkedJobId to 0 to auto-link to the most recently discussed job.','parameters':{'type':'object','properties':{'name':{'type':'string','description':'Full name'},'currentRole':{'type':'string','description':'Current/most recent job title'},'currentCompany':{'type':'string','description':'Current/most recent employer'},'location':{'type':'string','description':'City, Country'},'email':{'type':'string','description':'Email address if found'},'phone':{'type':'string','description':'Phone number if found'},'linkedIn':{'type':'string','description':'LinkedIn URL if found'},'cvText':{'type':'string','description':'COMPLETE CV text - paste everything'},'seniority':{'type':'string','description':'Junior, Mid, Senior, or Executive'},'experience':{'type':'string','description':'Years of experience, e.g. 5+ years'},'industry':{'type':'string','description':'Industry sector'},'skills':{'type':'array','items':{'type':'string'},'description':'Array of technical skills extracted from CV'},'languages':{'type':'string','description':'Languages and proficiency levels'},'availability':{'type':'string','description':'Immediate, 1 month, 2 months, 3 months'},'salaryExpectation':{'type':'string','description':'Expected salary if mentioned'},'keyAchievements':{'type':'string','description':'Major accomplishments, e.g. Led SAP S/4 rollout, Managed $50M audit'},'projectTypes':{'type':'string','description':'Types of projects worked on, e.g. ERP implementation, M&A due diligence'},'industryDepth':{'type':'string','description':'Depth of industry knowledge, e.g. Automotive manufacturing 5+ years'},'managementScope':{'type':'string','description':'Team or budget scope, e.g. Managed 5-person team, $2M budget'},'redFlags':{'type':'string','description':'Concerns or risks, e.g. 3 job changes in 2 years, missing certification'},'hiddenGems':{'type':'string','description':'Undervalued strengths, e.g. Rare SOX 404 experience, Fluent in 3 languages'},'linkedJobId':{'type':'number','description':'ALWAYS use 0 to auto-link. Use -1 to not link.'}},'required':['name','cvText']}}},{'type':'function','function':{'name':'createJob','description':'Add a job to the database. Extract ALL fields from the job description.','parameters':{'type':'object','properties':{'title':{'type':'string'},'company':{'type':'string'},'location':{'type':'string'},'salary':{'type':'string','description':'Salary range if mentioned'},'description':{'type':'string','description':'Full job description'},'requirements':{'type':'string','description':'Key requirements'},'skills':{'type':'array','items':{'type':'string'},'description':'Required skills as array'},'seniority':{'type':'string','description':'Junior, Mid, Senior, Executive'},'jobType':{'type':'string','description':'Full-time, Contract, Part-time'},'industry':{'type':'string','description':'Industry sector'},'languageRequirements':{'type':'string','description':'Required languages and levels'},'mustHaveSkills':{'type':'string','description':'Non-negotiable skills required'},'niceToHaveSkills':{'type':'string','description':'Bonus skills that add value'},'dealBreakers':{'type':'string','description':'Disqualifying factors, e.g. No Big 4 experience, No German language'},'cultureFit':{'type':'string','description':'Team culture and work style attributes, e.g. Fast-paced startup, Collaborative'}},'required':['title','description']}}},{'type':'function','function':{'name':'screenCandidate','description':'Screen a candidate against their linked job. Use when user asks to evaluate fit.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'}},'required':['candidateId']}}},{'type':'function','function':{'name':'moveStage','description':'Change a candidate pipeline stage.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'},'stage':{'type':'string','enum':['PENDING','SUBMITTED','SCREENING','INTERVIEW','OFFER','HIRED','REJECTED']}},'required':['candidateId','stage']}}}];
+const OAI_TOOLS=[{'type':'function','function':{'name':'createCandidate','description':'Add a candidate to the database. CALL THIS IMMEDIATELY when user says YES to adding a candidate. Extract ALL fields from the CV text. Set linkedJobId to 0 to auto-link to the most recently discussed job.','parameters':{'type':'object','properties':{'name':{'type':'string','description':'Full name'},'currentRole':{'type':'string','description':'Current/most recent job title'},'currentCompany':{'type':'string','description':'Current/most recent employer'},'location':{'type':'string','description':'City, Country'},'email':{'type':'string','description':'Email address if found'},'phone':{'type':'string','description':'Phone number if found'},'linkedIn':{'type':'string','description':'LinkedIn URL if found'},'cvText':{'type':'string','description':'COMPLETE CV text - paste everything'},'seniority':{'type':'string','description':'Junior, Mid, Senior, or Executive'},'experience':{'type':'string','description':'Years of experience, e.g. 5+ years'},'industry':{'type':'string','description':'Industry sector'},'skills':{'type':'array','items':{'type':'string'},'description':'Array of technical skills extracted from CV'},'languages':{'type':'string','description':'Languages and proficiency levels'},'availability':{'type':'string','description':'Immediate, 1 month, 2 months, 3 months'},'salaryExpectation':{'type':'string','description':'Expected salary if mentioned'},'keyAchievements':{'type':'string','description':'Major accomplishments, e.g. Led SAP S/4 rollout, Managed $50M audit'},'projectTypes':{'type':'string','description':'Types of projects worked on, e.g. ERP implementation, M&A due diligence'},'industryDepth':{'type':'string','description':'Depth of industry knowledge, e.g. Automotive manufacturing 5+ years'},'managementScope':{'type':'string','description':'Team or budget scope, e.g. Managed 5-person team, $2M budget'},'redFlags':{'type':'string','description':'Concerns or risks, e.g. 3 job changes in 2 years, missing certification'},'hiddenGems':{'type':'string','description':'Undervalued strengths, e.g. Rare SOX 404 experience, Fluent in 3 languages'},'linkedJobId':{'type':'number','description':'Job number from the list above. Use 0 to auto-link to discussed job. Use -1 for no job. Use 1,2,3... for specific jobs. NEVER use large IDs like 2147483651.'}},'required':['name','cvText']}}},{'type':'function','function':{'name':'createJob','description':'Add a job to the database. Extract ALL fields from the job description.','parameters':{'type':'object','properties':{'title':{'type':'string'},'company':{'type':'string'},'location':{'type':'string'},'salary':{'type':'string','description':'Salary range if mentioned'},'description':{'type':'string','description':'Full job description'},'requirements':{'type':'string','description':'Key requirements'},'skills':{'type':'array','items':{'type':'string'},'description':'Required skills as array'},'seniority':{'type':'string','description':'Junior, Mid, Senior, Executive'},'jobType':{'type':'string','description':'Full-time, Contract, Part-time'},'industry':{'type':'string','description':'Industry sector'},'languageRequirements':{'type':'string','description':'Required languages and levels'},'mustHaveSkills':{'type':'string','description':'Non-negotiable skills required'},'niceToHaveSkills':{'type':'string','description':'Bonus skills that add value'},'dealBreakers':{'type':'string','description':'Disqualifying factors, e.g. No Big 4 experience, No German language'},'cultureFit':{'type':'string','description':'Team culture and work style attributes, e.g. Fast-paced startup, Collaborative'}},'required':['title','description']}}},{'type':'function','function':{'name':'screenCandidate','description':'Screen a candidate against their linked job. Use when user asks to evaluate fit.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'}},'required':['candidateId']}}},{'type':'function','function':{'name':'moveStage','description':'Change a candidate pipeline stage.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'},'stage':{'type':'string','enum':['PENDING','SUBMITTED','SCREENING','INTERVIEW','OFFER','HIRED','REJECTED']}},'required':['candidateId','stage']}}}];
 
 document.getElementById('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
 document.getElementById('chatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
@@ -1192,21 +1197,34 @@ function renderChatMsg(m,i){
 
 // Track last created IDs for action chaining
 let _lastJobId=null,_lastCandId=null,_lastDiscussedJobId=null;
-// Track last candidate evaluation context for direct save (bypass AI hallucination)
-let _lastCvText='',_lastCandName='';
+// Map display order (1,2,3) → real database ID. AI sees small numbers, we map to real IDs.
+let _displayIdMap={};
+function buildDisplayIdMap(){
+  _displayIdMap={};
+  S.jobs.forEach(j=>{
+    const displayOrder=j.displayOrder||j.id;
+    _displayIdMap[displayOrder]=j.id;
+  });
+}
+// Convert an AI-provided linkedJobId to a real database ID
+function resolveJobId(aiJobId){
+  aiJobId=+aiJobId;
+  if(aiJobId===0)return _lastDiscussedJobId||null;
+  if(aiJobId===-1)return null;
+  // If AI sent a small number, look it up in the display map
+  if(_displayIdMap[aiJobId])return _displayIdMap[aiJobId];
+  // If AI sent a real database ID directly, trust it
+  if(S.jobs.find(j=>+j.id===aiJobId))return aiJobId;
+  // Fallback
+  return _lastDiscussedJobId||null;
+}
 
 async function execAction(a){
   const d=a.data;
-  // SMART JOB LINKING for createCandidate:
-  // 1. Check if user EXPLICITLY named a job in their last message → trust that
-  // 2. AI sent linkedJobId:0 → use most recently discussed job
-  // 3. AI sent specific ID matching discussed job → trust it
-  // 4. AI sent specific ID DIFFERENT from discussed job → AI is confused, override
-  // This covers both workflows: "screen against this job" AND "which job fits?"
-  // Simple job linking: trust the AI's linkedJobId, only handle special values
-  if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
-  else if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id;
-  if(d.linkedJobId===-1)d.linkedJobId=null;
+  // Resolve linkedJobId using display ID map. AI sees small numbers (1,2,3...),
+  // we convert to real database IDs. Handles 0 (discussed job), -1 (no job),
+  // small display numbers, and direct database IDs as fallback.
+  d.linkedJobId=resolveJobId(d.linkedJobId);
   
   if(a.type==='createJob'){
     const r=await ap('jobs.php',d);_lastJobId=r.id;_lastDiscussedJobId=r.id;
@@ -1237,33 +1255,20 @@ async function execAction(a){
 }
 async function confirmAdd(mi,type,jobId){
   const el=document.getElementById('ac-add-'+mi);
-  if(el)el.innerHTML='<div style="color:var(--gold);font-size:.8rem;padding:4px 0"><span class="sp"></span> Saving...</div>';
-  
-  if(type==='candidate'){
-    // DIRECT SAVE: bypass AI tool calling which often hallucinates "Done"
-    // Extract candidate name and CV text from chat history
-    const userMsgs=chatHist.filter(m=>m.role==='user');
-    const cvMsg=userMsgs.reverse().find(m=>m.text.length>300); // CV text is long
-    const cvText=cvMsg?cvMsg.text:'';
-    // Extract name from first non-empty line of CV
-    const name=(cvText.split('\n').map(l=>l.trim()).find(l=>l.length>0)||'Unknown').substring(0,100);
-    try{
-      const action={type:'createCandidate',data:{name,cvText,linkedJobId:jobId||-1}};
-      const result=await execAction(action);
-      if(el)el.innerHTML='<div style="color:var(--green);font-size:.8rem;padding:4px 0">&#10003; Saved. Ask me to extract more details or screen against a job.</div>';
-      toast(result);
-    }catch(e){
-      if(el)el.innerHTML='<div style="color:var(--red);font-size:.8rem;padding:4px 0">&#10007; '+esc(e.message)+'</div>';
-      toast('Error: '+e.message);
-    }
+  if(el)el.innerHTML='<div style="color:var(--gold);font-size:.8rem;padding:4px 0"><span class="sp"></span> Processing...</div>';
+  // Build a message that uses the DISPLAY number (small, reliable) not the real database ID
+  let strongMsg;
+  if(type==='candidate'&&jobId){
+    const job=S.jobs.find(j=>+j.id===+jobId);
+    const displayNum=job?(job.displayOrder||job.id):jobId;
+    strongMsg=`YES, save this candidate and link them to Job #${displayNum}. Use the createCandidate tool with linkedJobId:${displayNum} and include ALL details from the CV.`;
   }else{
-    // For jobs: still use AI since job fields need parsing
-    const strongMsg=`YES, add this job to the database now. Use the createJob tool and include ALL details from our conversation.`;
-    document.getElementById('chatInput').value=strongMsg;
-    await sendChat();
-    const el2=document.getElementById('ac-add-'+mi);
-    if(el2&&el2.innerHTML.includes('Saving')) el2.style.display='none';
+    strongMsg=`YES, ${type==='candidate'?'save this candidate to the database':'add this job to the database'} now. Use the create${type==='candidate'?'Candidate':'Job'} tool and include ALL details from our conversation.`;
   }
+  document.getElementById('chatInput').value=strongMsg;
+  await sendChat();
+  const el2=document.getElementById('ac-add-'+mi);
+  if(el2&&el2.innerHTML.includes('Processing')) el2.style.display='none';
 }
 function dismissAdd(mi){
   // Mark as dismissed with clear feedback, auto-hide after 5s
