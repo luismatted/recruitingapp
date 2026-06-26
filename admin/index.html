@@ -1091,13 +1091,18 @@ SCREENING FORMAT — You MUST include ALL four sections:
 AFTER SCREENING — Always ask:
 "Would you like me to add this candidate to the database and link them to ${lastJob?lastJob.title:'this job'}?"
 
-WHEN USER SAYS YES — IMMEDIATELY call the createCandidate tool with ALL details from the CV. Then call the screenCandidate tool to save the screening.
+WHEN USER SAYS YES — IMMEDIATELY call the createCandidate tool with ALL details from the CV.
+
+JOB LINKING RULES for createCandidate:
+- linkedJobId: 0 → auto-link to the most recently discussed job (default)
+- linkedJobId: -1 → do NOT assign any job (use when user says "no job" or "don't assign")
+- linkedJobId: specific number → only when user explicitly names a different job
 
 CRITICAL RULES FOR TOOL USAGE:
 - You MUST call the createJob tool to create a job. Saying "Done" in text does NOT create anything.
 - You MUST call the createCandidate tool to add a candidate. Text responses alone do NOT save to the database.
 - NEVER say "Done" or "Added" unless you have actually called the tool and received a success response.
-- ALWAYS call the tool. Text without tool calls has zero effect.
+- The createCandidate tool does NOT auto-screen. If the user wants screening after adding, call screenCandidate separately.
 
 INTERNAL JOBS (${S.jobs.length}):
 ${jx||'(none)'}
@@ -1196,37 +1201,9 @@ async function execAction(a){
   // 3. AI sent specific ID matching discussed job → trust it
   // 4. AI sent specific ID DIFFERENT from discussed job → AI is confused, override
   // This covers both workflows: "screen against this job" AND "which job fits?"
-  if(a.type==='createCandidate'){
-    const lastUserMsg=chatHist.filter(m=>m.role==='user').pop();
-    const userText=lastUserMsg?lastUserMsg.text.toLowerCase():'';
-    // Check if user explicitly said NO job assignment (e.g. "do not assign any job", "no job")
-    const noJobIntent=userText.match(/(?:do not|don't|dont|never|without)\s+(?:assign|link|give|attach)/)||
-                      userText.match(/(?:no|without)\s+(?:job|assignment|link)/)||
-                      userText.match(/(?:unassigned|no link|no assign)/);
-    if(noJobIntent){
-      d.linkedJobId=-1; // User explicitly said no job assignment
-    }else{
-      // Check if user explicitly mentioned a job ID like "job ID:12345" or "linkedJobId:12345"
-      const explicitIdMatch=lastUserMsg?lastUserMsg.text.match(/(?:job\s*ID|linkedJobId)[:\s]*(\d+)/i):null;
-      const explicitJobId=explicitIdMatch?parseInt(explicitIdMatch[1]):null;
-      const userPickedJob=lastUserMsg?findJobInText(lastUserMsg.text):null;
-      if(explicitJobId&&S.jobs.find(j=>+j.id===+explicitJobId)){
-        d.linkedJobId=explicitJobId; // User explicitly specified job ID
-      }else if(userPickedJob){
-        d.linkedJobId=userPickedJob.id; // User explicitly named a job
-      }else if(d.linkedJobId===0&&_lastDiscussedJobId){
-        d.linkedJobId=_lastDiscussedJobId; // Auto-link to discussed job
-      }else if(d.linkedJobId===0&&S.jobs.length){
-        d.linkedJobId=S.jobs[0].id; // Fallback: first job
-      }else if(d.linkedJobId>0&&_lastDiscussedJobId&&d.linkedJobId!==_lastDiscussedJobId){
-        d.linkedJobId=_lastDiscussedJobId; // AI confused, force discussed job
-      }
-    }
-  }else{
-    // For other actions: resolve linkedJobId:0 as before
-    if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
-    else if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id;
-  }
+  // Simple job linking: trust the AI's linkedJobId, only handle special values
+  if(d.linkedJobId===0&&_lastDiscussedJobId)d.linkedJobId=_lastDiscussedJobId;
+  else if(d.linkedJobId===0&&S.jobs.length)d.linkedJobId=S.jobs[0].id;
   if(d.linkedJobId===-1)d.linkedJobId=null;
   
   if(a.type==='createJob'){
@@ -1239,17 +1216,7 @@ async function execAction(a){
     if(d.linkedJobId)_lastDiscussedJobId=d.linkedJobId;
     S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});
     renderCandList();updateDash();updateChatContext();
-    // Auto-screen if linked to a job
-    if(d.linkedJobId){
-      try{
-        toast('Auto-screening candidate...');
-        const result=await doScreening(r.id);
-        return`Candidate "${d.name}" added (ID:${r.id}) linked to job #${d.linkedJobId}. Screened: ${result.verdict} (${result.score}%)`;
-      }catch(screenErr){
-        return`Candidate "${d.name}" added (ID:${r.id}) linked to job #${d.linkedJobId}. Screening failed: ${screenErr.message}`;
-      }
-    }
-    return`Candidate "${d.name}" added (ID:${r.id})`;
+    return`Candidate "${d.name}" added (ID:${r.id})${d.linkedJobId?' linked to job #'+d.linkedJobId:''}`;
   }
   if(a.type==='screenCandidate'){
     const cid=+d.candidateId||_lastCandId;
