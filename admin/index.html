@@ -1163,15 +1163,24 @@ async function execAction(a){
   
   if(a.type==='createJob'){
     const r=await ap('jobs.php',d);_lastJobId=r.id;_lastDiscussedJobId=r.id;
-    S.jobs.unshift({...d,id:r.id,status:'active',createdAt:new Date().toISOString()});
-    renderJobList();updateDash();updateChatContext();return`Job "${d.title}" created (ID:${r.id})`;
+    S.jobs.unshift({...d,id:r.id,status:'active',displayOrder:r.displayOrder,createdAt:new Date().toISOString()});
+    renderJobList();updateDash();updateChatContext();
+    return`Job "${d.title}" created (Job #${r.displayOrder||r.id})`;
   }
   if(a.type==='createCandidate'){
     const r=await ap('candidates.php',d);_lastCandId=r.id;
     if(d.linkedJobId)_lastDiscussedJobId=d.linkedJobId;
     S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});
     renderCandList();updateDash();updateChatContext();
-    return`Candidate "${d.name}" added (ID:${r.id})${d.linkedJobId?' linked to job #'+d.linkedJobId:''}`;
+    // Show display number + job title in result, not raw database ID
+    let jobInfo='';
+    if(d.linkedJobId){
+      const linkedJob=S.jobs.find(j=>+j.id===+d.linkedJobId);
+      const displayNum=linkedJob?(linkedJob.displayOrder||linkedJob.id):d.linkedJobId;
+      const jobTitle=linkedJob?linkedJob.title:'Unknown';
+      jobInfo=` linked to Job #${displayNum} (${jobTitle})`;
+    }
+    return`Candidate "${d.name}" added (ID:${r.id})${jobInfo}`;
   }
   if(a.type==='screenCandidate'){
     const cid=+d.candidateId||_lastCandId;
