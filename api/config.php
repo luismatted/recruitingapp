@@ -135,7 +135,19 @@ function normalizeKeys(array $row): array {
  * Normalize all rows in a result set
  */
 function normalizeRows(array $rows): array {
-    return array_map('normalizeKeys', $rows);
+    return array_map(function($row) {
+        $item = normalizeKeys($row);
+        // Parse JSON fields from database strings to arrays/objects
+        if (isset($item['skills']) && is_string($item['skills'])) {
+            $decoded = json_decode($item['skills'], true);
+            $item['skills'] = is_array($decoded) ? $decoded : [];
+        }
+        if (isset($item['parsedData']) && is_string($item['parsedData'])) {
+            $decoded = json_decode($item['parsedData'], true);
+            $item['parsedData'] = is_array($decoded) ? $decoded : (object)[];
+        }
+        return $item;
+    }, $rows);
 }
 
 /**
