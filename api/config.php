@@ -19,30 +19,116 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Database credentials
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'u678696734_crossing1');
-define('DB_USER', 'u678696734_Luiscrossing1');
-define('DB_PASS', 'Juanjito$25');
+define('DB_PATH', __DIR__ . '/../database.sqlite');
 define('DEFAULT_HASH', '1396232173'); // hash for "talent2025"
 
 /**
- * Get database connection (singleton)
+ * Get database connection (singleton) — SQLite
  */
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
         $pdo = new PDO(
-            'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
-            DB_USER, DB_PASS,
+            'sqlite:' . DB_PATH,
+            null, null,
             [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false
             ]
         );
+        $pdo->exec('PRAGMA journal_mode=WAL;');
+        $pdo->exec('PRAGMA foreign_keys=ON;');
+        initSchema($pdo);
     }
     return $pdo;
+}
+
+/**
+ * Create tables if they don't exist
+ */
+function initSchema(PDO $pdo): void {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS settings (
+            `key`   TEXT PRIMARY KEY,
+            `value` TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS jobs (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            title         TEXT NOT NULL,
+            company       TEXT DEFAULT '',
+            location      TEXT DEFAULT '',
+            salary        TEXT DEFAULT '',
+            description   TEXT DEFAULT '',
+            requirements  TEXT DEFAULT '',
+            skills        TEXT DEFAULT '[]',
+            status        TEXT DEFAULT 'active',
+            display_order INTEGER DEFAULT 0,
+            parsed_data   TEXT DEFAULT '{}',
+            created_at    TEXT DEFAULT (datetime('now')),
+            updated_at    TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS candidates (
+            id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+            name                  TEXT NOT NULL,
+            current_role          TEXT DEFAULT '',
+            current_company       TEXT DEFAULT '',
+            location              TEXT DEFAULT '',
+            email                 TEXT DEFAULT '',
+            phone                 TEXT DEFAULT '',
+            linked_in             TEXT DEFAULT '',
+            cv_text               TEXT DEFAULT '',
+            seniority             TEXT DEFAULT '',
+            skills                TEXT DEFAULT '[]',
+            linked_job_id         INTEGER DEFAULT NULL,
+            screening_score       INTEGER DEFAULT NULL,
+            screening_verdict     TEXT DEFAULT NULL,
+            screening_rationale   TEXT DEFAULT NULL,
+            screening_key_strength TEXT DEFAULT NULL,
+            stage                 TEXT DEFAULT 'PENDING',
+            parsed_data           TEXT DEFAULT '{}',
+            created_at            TEXT DEFAULT (datetime('now')),
+            updated_at            TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS screenings (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_id INTEGER NOT NULL,
+            job_id       INTEGER NOT NULL,
+            verdict      TEXT DEFAULT 'MAYBE',
+            score        INTEGER DEFAULT 50,
+            rationale    TEXT DEFAULT '',
+            key_strength TEXT DEFAULT '',
+            created_at   TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS public_jobs (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_job_id INTEGER DEFAULT NULL,
+            title         TEXT NOT NULL,
+            company       TEXT DEFAULT '',
+            location      TEXT DEFAULT '',
+            salary        TEXT DEFAULT '',
+            job_type      TEXT DEFAULT '',
+            description   TEXT DEFAULT '',
+            skills        TEXT DEFAULT '[]',
+            created_at    TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS public_candidates (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_candidate_id INTEGER DEFAULT NULL,
+            name                TEXT NOT NULL,
+            role                TEXT DEFAULT '',
+            location            TEXT DEFAULT '',
+            experience          TEXT DEFAULT '',
+            highlight           TEXT DEFAULT '',
+            skills              TEXT DEFAULT '[]',
+            display_order       INTEGER DEFAULT 0,
+            created_at          TEXT DEFAULT (datetime('now'))
+        );
+    ");
 }
 
 /**
@@ -61,7 +147,6 @@ function getStoredHash(): string {
 
 /**
  * Check if auth parameter is valid
- * Can be via ?auth=HASH query param
  */
 function requireAuth(): void {
     $auth = $_GET['auth'] ?? '';
@@ -99,7 +184,6 @@ function jsonError(string $msg, int $code = 400): void {
 
 /**
  * Normalize data for API response
- * Converts snake_case DB columns to camelCase for JS frontend
  */
 function normalizeKeys(array $row): array {
     $map = [
@@ -122,7 +206,7 @@ function normalizeKeys(array $row): array {
         'key_strength' => 'keyStrength',
         'display_order' => 'displayOrder',
     ];
-    
+
     $result = [];
     foreach ($row as $key => $value) {
         $newKey = $map[$key] ?? $key;
@@ -137,7 +221,6 @@ function normalizeKeys(array $row): array {
 function normalizeRows(array $rows): array {
     return array_map(function($row) {
         $item = normalizeKeys($row);
-        // Parse JSON fields from database strings to arrays/objects
         if (isset($item['skills']) && is_string($item['skills'])) {
             $decoded = json_decode($item['skills'], true);
             $item['skills'] = is_array($decoded) ? $decoded : [];

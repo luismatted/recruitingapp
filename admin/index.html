@@ -291,11 +291,21 @@ textarea.inp{resize:vertical;min-height:60px}
 
 <!-- CANDIDATES -->
 <div class="pn" id="pn-candidates">
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+    <select class="inp" id="candJobFilter" onchange="renderCandList()" style="flex:1;min-width:160px;max-width:280px">
+      <option value="">All Jobs</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--text2);cursor:pointer;white-space:nowrap">
+      <input type="checkbox" id="candSortScore" onchange="renderCandList()" style="accent-color:var(--gold)"> Sort by score
+    </label>
+    <div id="candJobCount" style="font-size:.8rem;color:var(--text3)"></div>
+  </div>
   <div class="tc">
     <div class="lp">
       <div class="lph">
         <input type="text" class="inp" id="candSearch" placeholder="Search..." style="flex:1" oninput="renderCandList()">
-        <button class="btn btn-p btn-sm" onclick="openCandModal()">+ Add</button>
+        <button class="btn btn-p btn-sm" onclick="openPasteCV()" title="Paste a CV and AI will extract, score and save automatically">&#128203; Paste CV</button>
+        <button class="btn btn-g btn-sm" onclick="openCandModal()" title="Manual entry">+ Manual</button>
       </div>
       <div class="lpb" id="candListBox"></div>
     </div>
@@ -352,9 +362,12 @@ textarea.inp{resize:vertical;min-height:60px}
         <div style="font-size:3rem">&#129302;</div>
         <div style="font-weight:700;color:var(--text)">TalentAI Assistant</div>
         <div style="font-size:.85rem;color:var(--text2);max-width:320px;text-align:center">Paste a CV or JD and I'll parse, score, and save everything. I handle the data entry.</div>
-        <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:360px;margin-top:8px">
-          <button class="btn btn-g btn-sm" onclick="quickChat('Add job: paste JD here')" style="justify-content:flex-start;font-size:.8rem">&#128188; "Add job: paste JD here"</button>
-          <button class="btn btn-g btn-sm" onclick="quickChat('Add candidate: paste CV here')" style="justify-content:flex-start;font-size:.8rem">&#128100; "Add candidate: paste CV here"</button>
+        <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:400px;margin-top:8px">
+          <div style="font-size:.75rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Quick actions</div>
+          <button class="btn btn-g btn-sm" onclick="quickChat('Save this JD to the database:\n\n[PASTE JD HERE]')" style="justify-content:flex-start;font-size:.8rem">&#128188; Save a Job Description</button>
+          <button class="btn btn-g btn-sm" onclick="buildScorePrompt()" style="justify-content:flex-start;font-size:.8rem">&#9889; Score a candidate for a job</button>
+          <button class="btn btn-g btn-sm" onclick="quickChat('Save this candidate and link to the job we just discussed. Include the score we just gave.\n\n[CONFIRM YES TO SAVE]')" style="justify-content:flex-start;font-size:.8rem">&#128190; Save candidate with score</button>
+          <button class="btn btn-g btn-sm" onclick="buildRankPrompt()" style="justify-content:flex-start;font-size:.8rem">&#128200; Rank candidates for a job</button>
         </div>
       </div>
     </div>
@@ -447,6 +460,30 @@ textarea.inp{resize:vertical;min-height:60px}
       <div class="fr"><div class="fg"><label>Status</label><select class="inp" id="jobStatus"><option value="active">Active</option><option value="draft">Draft</option><option value="closed">Closed</option></select></div></div>
     </div>
     <div class="mf"><button class="btn btn-g" onclick="closeModal('jobModal')">Cancel</button><button class="btn btn-p" id="jobSaveBtn" onclick="saveJob()">Save</button></div>
+  </div>
+</div>
+
+<!-- Paste CV Modal -->
+<div class="mo" id="pasteCVModal">
+  <div class="md wide">
+    <div class="mh"><span class="mt">&#128203; Paste CV — AI will handle everything</span><button class="btn-ic" onclick="closeModal('pasteCVModal')">&#10005;</button></div>
+    <div class="mb">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;font-size:.83rem;color:var(--text2)">
+        &#129302; <strong>How it works:</strong> Paste any CV below → AI extracts name, role, skills, experience → scores the candidate against the selected job → saves everything automatically. No manual fields needed.
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Link to Job (optional — AI will score against this job)</label>
+        <select class="inp" id="pasteCVJobSelect"><option value="">— No specific job —</option></select>
+      </div>
+      <div class="fg">
+        <label>CV / Resume Text *</label>
+        <textarea class="inp" id="pasteCVText" rows="14" style="resize:vertical;font-family:monospace;font-size:.82rem" placeholder="Paste the full CV here — name, contact info, work history, education, skills, everything. The more text the better."></textarea>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-g" onclick="closeModal('pasteCVModal')">Cancel</button>
+      <button class="btn btn-p" onclick="submitPasteCV()" style="gap:8px">&#129302; Analyze &amp; Save with AI</button>
+    </div>
   </div>
 </div>
 
@@ -688,7 +725,7 @@ function renderJobDetail(){
   if(!selJob){el.innerHTML='<div class="de"><div><div style="font-size:3rem">&#128188;</div><p>Select a job</p></div></div>';return;}
   const j=selJob;const cc=S.candidates.filter(c=>+c.linkedJobId===+j.id);
   const sk=(j.skills||[]).join(', ');
-  el.innerHTML=`<div class="da"><button class="btn btn-p btn-sm" onclick="openJobModal(${j.id})">&#9998; Edit</button><button class="btn btn-s btn-sm" onclick="publishJob(${j.id})">&#127760; Publish</button><button class="btn btn-d btn-sm" onclick="deleteJob(${j.id})">&#128465; Delete</button></div>
+  el.innerHTML=`<div class="da"><button class="btn btn-p btn-sm" onclick="openJobModal(${j.id})">&#9998; Edit</button><button class="btn btn-g btn-sm" onclick="viewJobCandidates(${j.id})">&#128200; Ranked Candidates</button><button class="btn btn-s btn-sm" onclick="publishJob(${j.id})">&#127760; Publish</button><button class="btn btn-d btn-sm" onclick="deleteJob(${j.id})">&#128465; Delete</button></div>
   <div class="ds"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:1.1rem;font-weight:700;color:var(--text)">${esc(j.title)}</div><div style="color:var(--text2);margin-top:3px">${[esc(j.company||''),esc(j.location||''),esc(j.salary||'')].filter(Boolean).join(' &bull; ')}</div></div><span class="bd ${j.status==='active'?'bd-g':j.status==='draft'?'bd-gr':'bd-r'}">${esc(j.status)}</span></div></div>
   ${j.seniority?`<div class="ds"><div class="dl">Seniority</div><div class="dv">${esc(j.seniority)} &bull; ${esc(j.jobType||'Full-time')}</div></div>`:''}
   ${j.industry?`<div class="ds"><div class="dl">Industry</div><div class="dv">${esc(j.industry)}</div></div>`:''}
@@ -727,16 +764,55 @@ async function saveJob(){
   btn.disabled=false;btn.textContent='Save';
 }
 async function deleteJob(id){if(!confirm('Delete this job?'))return;try{await adel('jobs.php?id='+id);S.jobs=S.jobs.filter(j=>+j.id!==+id);if(selJob&&+selJob.id===+id){selJob=null;renderJobDetail();}renderJobList();updateDash();updateChatContext();toast('Deleted');}catch(x){toast('Error: '+x.message);}}
+function viewJobCandidates(jobId){
+  switchPanel('candidates');
+  // Set job filter and enable score sort
+  const sel=document.getElementById('candJobFilter');
+  if(sel)sel.value=String(jobId);
+  const sc=document.getElementById('candSortScore');
+  if(sc)sc.checked=true;
+  renderCandList();
+}
 
 // ==================== CANDIDATES ====================
+function updateCandJobFilter(){
+  const sel=document.getElementById('candJobFilter');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">All Jobs</option>'+S.jobs.map(j=>{
+    const cc=S.candidates.filter(c=>+c.linkedJobId===+j.id).length;
+    return`<option value="${j.id}"${cur==j.id?' selected':''}>${esc(j.title)}${cc?' ('+cc+')':''}</option>`;
+  }).join('');
+  if(cur)sel.value=cur;
+}
 function renderCandList(){
+  updateCandJobFilter();
   const q=(document.getElementById('candSearch').value||'').toLowerCase();
-  const fl=S.candidates.filter(c=>!q||(c.name||'').toLowerCase().includes(q)||(c.currentRole||'').toLowerCase().includes(q));
+  const jobFilter=document.getElementById('candJobFilter')?.value||'';
+  const sortByScore=document.getElementById('candSortScore')?.checked||false;
+  let fl=S.candidates.filter(c=>{
+    if(jobFilter&&+c.linkedJobId!==+jobFilter)return false;
+    return !q||(c.name||'').toLowerCase().includes(q)||(c.currentRole||'').toLowerCase().includes(q);
+  });
+  if(sortByScore){
+    fl=fl.slice().sort((a,b)=>{
+      const sa=a.screeningScore!=null?+a.screeningScore:-1;
+      const sb=b.screeningScore!=null?+b.screeningScore:-1;
+      return sb-sa;
+    });
+  }
+  // Show count info
+  const countEl=document.getElementById('candJobCount');
+  if(countEl){
+    const screened=fl.filter(c=>c.screeningScore!=null);
+    countEl.textContent=fl.length+' candidate'+(fl.length!==1?'s':'')+(screened.length?' · '+screened.length+' scored':'');
+  }
   const b=document.getElementById('candListBox');
   if(!fl.length){b.innerHTML='<div class="em">No candidates</div>';return;}
   b.innerHTML=fl.map(c=>{
     const linkedJob=S.jobs.find(j=>+j.id===+c.linkedJobId);
-    return`<div class="li${selCand&&selCand.id==c.id?' sel':''}" onclick="selectCand(${c.id})"><div style="flex:1;min-width:0"><div class="lit">${esc(c.name)}</div><div class="lis">${esc(c.currentRole||'')}${c.currentCompany?' at '+esc(c.currentCompany):''}${linkedJob?' &rarr; '+esc(linkedJob.title):''}</div><div style="margin-top:3px;display:flex;gap:3px;flex-wrap:wrap">${c.screeningScore!=null?`<span class="bd ${+c.screeningScore>=75?'bd-g':+c.screeningScore>=50?'bd-y':'bd-r'}">${c.screeningScore}% ${c.screeningVerdict||''}</span>`:''}${c.stage?`<span class="bd bd-b">${esc(c.stage)}</span>`:''}</div></div><div style="display:flex;gap:2px;flex-shrink:0"><button class="btn-ic" onclick="event.stopPropagation();openCandModal(${c.id})">&#9998;</button><button class="btn-ic" onclick="event.stopPropagation();deleteCand(${c.id})">&#128465;</button></div></div>`;
+    const rank=sortByScore&&c.screeningScore!=null?`<span style="font-size:.7rem;color:var(--text3);font-weight:700">#${fl.indexOf(c)+1}</span> `:'';
+    return`<div class="li${selCand&&selCand.id==c.id?' sel':''}" onclick="selectCand(${c.id})"><div style="flex:1;min-width:0"><div class="lit">${rank}${esc(c.name)}</div><div class="lis">${esc(c.currentRole||'')}${c.currentCompany?' at '+esc(c.currentCompany):''}${linkedJob&&!jobFilter?' &rarr; '+esc(linkedJob.title):''}</div><div style="margin-top:3px;display:flex;gap:3px;flex-wrap:wrap">${c.screeningScore!=null?`<span class="bd ${+c.screeningScore>=75?'bd-g':+c.screeningScore>=50?'bd-y':'bd-r'}">${c.screeningScore}% ${c.screeningVerdict||''}</span>`:'<span class="bd bd-gr">Unscored</span>'}${c.stage?`<span class="bd bd-b">${esc(c.stage)}</span>`:''}</div></div><div style="display:flex;gap:2px;flex-shrink:0"><button class="btn-ic" onclick="event.stopPropagation();openCandModal(${c.id})">&#9998;</button><button class="btn-ic" onclick="event.stopPropagation();deleteCand(${c.id})">&#128465;</button></div></div>`;
   }).join('');
 }
 function selectCand(id){selCand=S.candidates.find(c=>+c.id===+id);renderCandList();renderCandDetail();}
@@ -818,7 +894,7 @@ Location: ${job.location||'N/A'}
 Description:
 ${stripHtml(job.description||'').substring(0,2000)}`;
 
-  const screeningPrompt=`You are an expert recruitment screener for finance and accounting roles at Crossing Education.
+  const screeningPrompt=`You are an expert recruitment screener at Crossing Education, specializing in cross-border APAC placements across all industries and functions.
 
 SCORING CRITERIA:
 - 90-100: Exceptional fit — exceeds requirements in every dimension
@@ -833,14 +909,15 @@ VERDICT RULES:
 - NO (0-49%): Lacks critical requirements. Not a match.
 
 IMPORTANT:
+- Base your evaluation ENTIRELY on the specific job description provided — do not assume industry or role type
 - Flag title inflation: "Senior" at a tiny company != "Senior" at a large org
-- Detect hidden gems: ERP implementation, SOX, M&A, system go-live, intercompany, team leadership
-- Language match is CRITICAL if job specifies language requirements
+- Detect hidden gems: rare skills, relevant certifications, leadership, cross-functional experience that the job needs
+- Language match is CRITICAL if the job specifies language requirements
 - Location flexibility matters for cross-border roles
 - Be decisive. Use the full 0-100 range. Avoid clustering at 70-80.
-- CHECK DEAL BREAKERS: If candidate matches any job deal breaker, score drops sharply.
-- REWARD HIDDEN GEMS: If candidate has rare/valuable skills the job needs, score increases.
-- CONSIDER CULTURE FIT: Match candidate's work style to job's culture requirements.
+- CHECK DEAL BREAKERS: If candidate is missing must-have requirements, score drops sharply.
+- REWARD HIDDEN GEMS: If candidate has rare/valuable skills the job specifically needs, score increases.
+- CONSIDER CULTURAL FIT: Match candidate's background to the role's context and requirements.
 
 JOB TO SCREEN AGAINST:
 ${jobProfile}
@@ -971,7 +1048,40 @@ function loadChat(){try{const r=localStorage.getItem(CHAT_KEY);chatHist=r?JSON.p
 function saveChat(){localStorage.setItem(CHAT_KEY,JSON.stringify(chatHist.slice(-60)));}
 function clearChatHistory(){chatHist=[];localStorage.removeItem(CHAT_KEY);document.getElementById('chatMessages').innerHTML='<div class="em" style="flex:1;justify-content:center">Chat cleared</div>';}
 function updateChatContext(){document.getElementById('chatContext').textContent=`Context: ${S.jobs.length} jobs · ${S.candidates.length} candidates · ${S.pJobs.length} public` + (aiProvider==='kimi'?' · Kimi AI':' · OpenAI');}
+function openPasteCV(){
+  const sel=document.getElementById('pasteCVJobSelect');
+  sel.innerHTML='<option value="">— No specific job —</option>';
+  S.jobs.forEach(j=>sel.innerHTML+=`<option value="${j.id}">#${j.id} ${esc(j.title)}${j.company?' @ '+esc(j.company):''}</option>`);
+  document.getElementById('pasteCVText').value='';
+  document.getElementById('pasteCVModal').classList.add('open');
+}
+function submitPasteCV(){
+  const cv=document.getElementById('pasteCVText').value.trim();
+  if(!cv){alert('Please paste a CV first.');return;}
+  const jobId=document.getElementById('pasteCVJobSelect').value;
+  const job=jobId?S.jobs.find(j=>j.id==jobId):null;
+  closeModal('pasteCVModal');
+  switchPanel('chat');
+  let prompt='Please analyze this CV, extract all candidate details, score the candidate';
+  if(job){prompt+=` against the job "${job.title}"${job.company?' at '+job.company:''} (Job #${job.id})`;}
+  prompt+=', and save everything to the database using the createCandidate tool. Include the screening score, verdict and rationale at save time.\n\nCV:\n\n'+cv;
+  const inp=document.getElementById('chatInput');
+  inp.value=prompt;
+  inp.style.height='auto';
+  inp.style.height=Math.min(inp.scrollHeight,150)+'px';
+  sendChat();
+}
 function quickChat(t){document.getElementById('chatInput').value=t;document.getElementById('chatInput').focus();}
+function buildScorePrompt(){
+  if(!S.jobs.length){quickChat('Score this candidate for the job:\n\n[PASTE CV HERE]');return;}
+  const jobList=S.jobs.map((j,i)=>`${j.displayOrder||j.id}. ${j.title} @ ${j.company||'?'}`).join('\n');
+  quickChat(`Score this candidate for Job #[PICK NUMBER]:\n${jobList}\n\nCandidate CV:\n[PASTE CV HERE]`);
+}
+function buildRankPrompt(){
+  if(!S.jobs.length){toast('No jobs yet — add some JDs first');return;}
+  const jobList=S.jobs.map(j=>`${j.displayOrder||j.id}. ${j.title} @ ${j.company||'?'}`).join('\n');
+  quickChat(`Give me all candidates for Job #[PICK NUMBER] ranked from best score to worst:\n${jobList}`);
+}
 
 // Find a job mentioned in a text string (for chat context resolution)
 function findJobInText(text){
@@ -1008,16 +1118,17 @@ function buildSysPrompt(){
     return `Job #${displayNum}: ${j.title} @${j.company||'?'} | ${j.location||'?'} | ${j.seniority||'?'} | ${j.industry||'?'} [${j.status}]
 Skills: ${(j.skills||[]).join(', ')}
 Lang: ${j.languageRequirements||'?'}
-${stripHtml(j.description||'').substring(0,200)}`;
+${stripHtml(j.description||'').substring(0,1500)}`;
   }).join('\n\n');
   const cx=S.candidates.map(c=>`Candidate #${c.id}: ${c.name} | ${c.currentRole||'?'} @${c.currentCompany||'?'} | ${c.location||'?'} | ${c.seniority||'?'} | Score: ${c.screeningScore||'unscreened'} | ${c.screeningVerdict||'-'}
 Skills: ${(c.skills||[]).join(', ')}
-${(c.cvText||'').substring(0,150)}`).join('\n\n');
-  return `You are TalentAI, a recruitment AI for Crossing Education (finance/accounting specialist).
+${(c.cvText||'').substring(0,800)}`).join('\n\n');
+  return `You are TalentAI, a recruitment AI for Crossing Education — a cross-border APAC recruitment specialist covering all industries and functions.
 
 RULES:
 - Give decisive YES/NO/MAYBE verdicts with 0-100% scores
-- Flag title inflation, detect hidden gems (ERP, SOX, M&A, go-live)
+- Base ALL evaluations strictly on the actual job description — do not assume it is finance-related
+- Flag title inflation, detect hidden gems (relevant certifications, leadership, rare skills the job needs)
 - Explain in 2-3 sentences max
 - Extract basic fields: skills, seniority, languages, industry from CVs when saving
 
@@ -1027,12 +1138,13 @@ SCREENING FORMAT — You MUST include ALL four sections:
 **Score: X/100**
 **Verdict: YES/MAYBE/NO**
 **Why they fit:** [specific strengths with evidence from CV]
-**Why not 100%:** [MUST mention specific gaps. Examples: "Only 3 years vs 5+ required", "No team management experience yet", "Lacks Big 4 audit background", "Strong technically but limited German for client-facing role", "Good fundamentals but no cross-border M&A exposure"]
+**Why not 100%:** [MUST mention specific gaps based on THIS job's requirements. Examples: "Only 3 years vs 5+ required", "No team management experience yet", "Missing required certification", "Strong technically but limited language match for client-facing role", "Good fundamentals but no cross-border experience"]
 
 AFTER SCREENING — Always ask:
 "Would you like me to add this candidate to the database and link them to ${lastJob?lastJob.title:'this job'}?"
 
 WHEN USER SAYS YES — IMMEDIATELY call the createCandidate tool with ALL details from the CV.
+CRITICAL: When you create a candidate after scoring them, you MUST include screeningScore (number 0-100), screeningVerdict (YES/MAYBE/NO), screeningRationale (2-3 sentences), and screeningKeyStrength in the createCandidate tool call. The score must be saved at creation time — do NOT omit these fields.
 
 JOB LINKING:
 - linkedJobId: 0 → auto-link to discussed job (default)
@@ -1051,7 +1163,7 @@ CANDIDATES (${S.candidates.length}):
 ${cx||'(none)'}`;
 }
 
-const OAI_TOOLS=[{'type':'function','function':{'name':'createCandidate','description':'Add a candidate to the database. CALL THIS IMMEDIATELY when user says YES to adding a candidate. Extract ALL fields from the CV text. Set linkedJobId to 0 to auto-link to the most recently discussed job.','parameters':{'type':'object','properties':{'name':{'type':'string','description':'Full name'},'currentRole':{'type':'string','description':'Current/most recent job title'},'currentCompany':{'type':'string','description':'Current/most recent employer'},'location':{'type':'string','description':'City, Country'},'email':{'type':'string','description':'Email address if found'},'phone':{'type':'string','description':'Phone number if found'},'linkedIn':{'type':'string','description':'LinkedIn URL if found'},'cvText':{'type':'string','description':'COMPLETE CV text - paste everything'},'seniority':{'type':'string','description':'Junior, Mid, Senior, or Executive'},'experience':{'type':'string','description':'Years of experience, e.g. 5+ years'},'industry':{'type':'string','description':'Industry sector'},'skills':{'type':'array','items':{'type':'string'},'description':'Array of technical skills extracted from CV'},'languages':{'type':'string','description':'Languages and proficiency levels'},'availability':{'type':'string','description':'Immediate, 1 month, 2 months, 3 months'},'salaryExpectation':{'type':'string','description':'Expected salary if mentioned'},'linkedJobId':{'type':'number','description':'Job number from the list above. Use 0 to auto-link to discussed job. Use -1 for no job. Use 1,2,3... for specific jobs. NEVER use large IDs like 2147483651.'}},'required':['name','cvText']}}},{'type':'function','function':{'name':'createJob','description':'Add a job to the database. Extract ALL fields from the job description.','parameters':{'type':'object','properties':{'title':{'type':'string'},'company':{'type':'string'},'location':{'type':'string'},'salary':{'type':'string','description':'Salary range if mentioned'},'description':{'type':'string','description':'Full job description'},'requirements':{'type':'string','description':'Key requirements'},'skills':{'type':'array','items':{'type':'string'},'description':'Required skills as array'},'seniority':{'type':'string','description':'Junior, Mid, Senior, Executive'},'jobType':{'type':'string','description':'Full-time, Contract, Part-time'},'industry':{'type':'string','description':'Industry sector'},'languageRequirements':{'type':'string','description':'Required languages and levels'}},'required':['title','description']}}},{'type':'function','function':{'name':'screenCandidate','description':'Screen a candidate against their linked job. Use when user asks to evaluate fit.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'}},'required':['candidateId']}}},{'type':'function','function':{'name':'moveStage','description':'Change a candidate pipeline stage.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'},'stage':{'type':'string','enum':['PENDING','SUBMITTED','SCREENING','INTERVIEW','OFFER','HIRED','REJECTED']}},'required':['candidateId','stage']}}}];
+const OAI_TOOLS=[{'type':'function','function':{'name':'createCandidate','description':'Add a candidate to the database. CALL THIS IMMEDIATELY when user says YES to adding a candidate. Extract ALL fields from the CV text. Set linkedJobId to 0 to auto-link to the most recently discussed job.','parameters':{'type':'object','properties':{'name':{'type':'string','description':'Full name'},'currentRole':{'type':'string','description':'Current/most recent job title'},'currentCompany':{'type':'string','description':'Current/most recent employer'},'location':{'type':'string','description':'City, Country'},'email':{'type':'string','description':'Email address if found'},'phone':{'type':'string','description':'Phone number if found'},'linkedIn':{'type':'string','description':'LinkedIn URL if found'},'cvText':{'type':'string','description':'COMPLETE CV text - paste everything'},'seniority':{'type':'string','description':'Junior, Mid, Senior, or Executive'},'experience':{'type':'string','description':'Years of experience, e.g. 5+ years'},'industry':{'type':'string','description':'Industry sector'},'skills':{'type':'array','items':{'type':'string'},'description':'Array of technical skills extracted from CV'},'languages':{'type':'string','description':'Languages and proficiency levels'},'availability':{'type':'string','description':'Immediate, 1 month, 2 months, 3 months'},'salaryExpectation':{'type':'string','description':'Expected salary if mentioned'},'screeningScore':{'type':'number','description':'Score 0-100 if you just screened this candidate. ALWAYS include after scoring.'},'screeningVerdict':{'type':'string','enum':['YES','MAYBE','NO'],'description':'YES/MAYBE/NO verdict if you just screened. ALWAYS include after scoring.'},'screeningRationale':{'type':'string','description':'2-3 sentence fit explanation if you just screened. ALWAYS include after scoring.'},'screeningKeyStrength':{'type':'string','description':'Biggest strength or gap if you just screened. ALWAYS include after scoring.'},'linkedJobId':{'type':'number','description':'Job number from the list above. Use 0 to auto-link to discussed job. Use -1 for no job. Use 1,2,3... for specific jobs. NEVER use large IDs like 2147483651.'}},'required':['name','cvText']}}},{'type':'function','function':{'name':'createJob','description':'Add a job to the database. Extract ALL fields from the job description.','parameters':{'type':'object','properties':{'title':{'type':'string'},'company':{'type':'string'},'location':{'type':'string'},'salary':{'type':'string','description':'Salary range if mentioned'},'description':{'type':'string','description':'Full job description'},'requirements':{'type':'string','description':'Key requirements'},'skills':{'type':'array','items':{'type':'string'},'description':'Required skills as array'},'seniority':{'type':'string','description':'Junior, Mid, Senior, Executive'},'jobType':{'type':'string','description':'Full-time, Contract, Part-time'},'industry':{'type':'string','description':'Industry sector'},'languageRequirements':{'type':'string','description':'Required languages and levels'}},'required':['title','description']}}},{'type':'function','function':{'name':'screenCandidate','description':'Screen a candidate against their linked job. Use when user asks to evaluate fit.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'}},'required':['candidateId']}}},{'type':'function','function':{'name':'moveStage','description':'Change a candidate pipeline stage.','parameters':{'type':'object','properties':{'candidateId':{'type':'number','description':'Candidate ID. Use 0 for most recently added.'},'stage':{'type':'string','enum':['PENDING','SUBMITTED','SCREENING','INTERVIEW','OFFER','HIRED','REJECTED']}},'required':['candidateId','stage']}}}];
 
 document.getElementById('chatInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
 document.getElementById('chatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,150)+'px';});
@@ -1170,8 +1282,18 @@ async function execAction(a){
   if(a.type==='createCandidate'){
     const r=await ap('candidates.php',d);_lastCandId=r.id;
     if(d.linkedJobId)_lastDiscussedJobId=d.linkedJobId;
-    S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});
-    renderCandList();updateDash();updateChatContext();
+    // If AI provided screening data at creation time, save it immediately
+    if(d.screeningScore!=null){
+      const upd={...d,id:r.id,screeningScore:+d.screeningScore,screeningVerdict:d.screeningVerdict||'MAYBE',screeningRationale:d.screeningRationale||'',screeningKeyStrength:d.screeningKeyStrength||''};
+      await aput('candidates.php',upd);
+      if(d.linkedJobId){
+        try{await ap('screenings.php',{candidateId:r.id,jobId:d.linkedJobId,verdict:d.screeningVerdict||'MAYBE',score:+d.screeningScore,rationale:d.screeningRationale||'',keyStrength:d.screeningKeyStrength||''});}catch(e){}
+      }
+      S.candidates.unshift({...upd,createdAt:new Date().toISOString()});
+    }else{
+      S.candidates.unshift({...d,id:r.id,screeningScore:null,screeningVerdict:null,createdAt:new Date().toISOString()});
+    }
+    renderCandList();renderScreenings();updateDash();updateChatContext();
     // Show display number + job title in result, not raw database ID
     let jobInfo='';
     if(d.linkedJobId){
