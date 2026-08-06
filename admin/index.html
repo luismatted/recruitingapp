@@ -1346,8 +1346,8 @@
 
     async function updatePoolStatus(id, type, status) {
       try {
-        await fetch(`${API_URL}/talent-pool.php`, {
-          method: 'PUT',
+        await fetch(`${API_URL}/talent-pool.php?_method=PUT`, {
+          method: 'POST',
           headers: getHeaders(),
           body: JSON.stringify({ id, type, status })
         });
@@ -1359,8 +1359,8 @@
     async function deletePoolEntry(id, type) {
       if (!confirm('Delete this entry from the talent pool?')) return;
       try {
-        await fetch(`${API_URL}/talent-pool.php`, {
-          method: 'DELETE',
+        await fetch(`${API_URL}/talent-pool.php?_method=DELETE`, {
+          method: 'POST',
           headers: getHeaders(),
           body: JSON.stringify({ id, type })
         });

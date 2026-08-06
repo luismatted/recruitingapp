@@ -6,6 +6,14 @@ verifyAdmin();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Hostinger WAF blocks PUT/DELETE with a body — allow POST override
+if ($method === 'POST' && isset($_GET['_method'])) {
+    $override = strtoupper($_GET['_method']);
+    if (in_array($override, ['PUT', 'DELETE'])) {
+        $method = $override;
+    }
+}
+
 if ($method === 'GET') {
     $candidates = $db->query("
         SELECT id, name, email, linkedin, location, current_job_title, skills, seniority,
