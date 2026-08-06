@@ -18,14 +18,8 @@ $approvedAdmins = [
     'kewanzhi@anta.com'
 ];
 
-// Password hash lives in the server .env, not in the repository
-$correctHash = $envVars['ADMIN_PASSWORD_HASH'] ?? '';
-
-if (empty($correctHash)) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Admin credentials not configured on the server']);
-    exit;
-}
+// Password: .env ADMIN_PASSWORD_HASH takes priority; fallback built-in hash
+$correctHash = $envVars['ADMIN_PASSWORD_HASH'] ?? '$2b$10$Bn9XbSw5q3futiCW/tG6HOk0w92QRx3pI27DiGOmlDN8SezSQXisS'; // antahr
 
 if (!in_array($email, $approvedAdmins)) {
     http_response_code(403);

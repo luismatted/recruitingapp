@@ -35,17 +35,17 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --red: #e02424;
-    --red-glow: rgba(224, 36, 36, 0.45);
-    --violet: #7c3aed;
-    --ink: #f4f4f8;
-    --ink-dim: rgba(244, 244, 248, 0.55);
-    --glass: rgba(16, 16, 26, 0.55);
-    --glass-border: rgba(255, 255, 255, 0.09);
+    --red: #d7191a;
+    --red-glow: rgba(215, 25, 26, 0.30);
+    --violet: #16161a;
+    --ink: #16161a;
+    --ink-dim: rgba(22, 22, 26, 0.60);
+    --glass: rgba(255, 255, 255, 0.62);
+    --glass-border: rgba(22, 22, 26, 0.10);
   }
   html, body { height: 100%; }
   body {
-    background: #05050a;
+    background: #fcfcf8;
     color: var(--ink);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     overflow-x: hidden;
@@ -65,7 +65,7 @@
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    background: radial-gradient(ellipse at 50% 42%, transparent 30%, rgba(5,5,10,0.55) 78%, rgba(5,5,10,0.9) 100%);
+    background: radial-gradient(ellipse at 50% 42%, transparent 30%, rgba(252,252,248,0.55) 78%, rgba(252,252,248,0.92) 100%);
   }
 
   /* ---------- layout ---------- */
@@ -102,7 +102,7 @@
     background: #fff;
     padding: 7px 14px;
     border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.16);
   }
   .logins {
     display: flex;
@@ -116,13 +116,13 @@
     padding: 8px 16px;
     border-radius: 999px;
     border: 1px solid var(--glass-border);
-    background: rgba(255,255,255,0.03);
+    background: rgba(255,255,255,0.55);
     backdrop-filter: blur(8px);
     transition: all 0.25s;
   }
-  .logins a:hover { color: #fff; border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.07); }
-  .logins a.admin { color: #ffb4b4; border-color: rgba(224,36,36,0.35); }
-  .logins a.admin:hover { background: rgba(224,36,36,0.15); color: #fff; }
+  .logins a:hover { color: #16161a; border-color: rgba(22,22,26,0.25); background: rgba(255,255,255,0.9); }
+  .logins a.admin { color: #d7191a; border-color: rgba(215,25,26,0.4); }
+  .logins a.admin:hover { background: rgba(215,25,26,0.10); color: #d7191a; }
 
   /* ---------- hero ---------- */
   .hero {
@@ -144,11 +144,11 @@
     line-height: 1.14;
     letter-spacing: -1px;
     margin-bottom: 14px;
-    text-shadow: 0 4px 40px rgba(0,0,0,0.7);
+    text-shadow: 0 2px 26px rgba(252,252,248,0.9);
     animation: fadeUp 1.4s ease 1.4s both;
   }
   .hero h1 .grad {
-    background: linear-gradient(100deg, #ff6b6b 0%, var(--red) 45%, var(--violet) 100%);
+    background: linear-gradient(100deg, #f05454 0%, var(--red) 45%, var(--violet) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -174,7 +174,7 @@
     border-radius: 24px;
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    box-shadow: 0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.7);
     overflow: hidden;
     animation: fadeUp 1.4s ease 2s both;
   }
@@ -186,7 +186,7 @@
     flex-direction: column;
     gap: 12px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.15) transparent;
+    scrollbar-color: rgba(22,22,26,0.2) transparent;
   }
   .msg {
     max-width: 82%;
@@ -199,17 +199,18 @@
   }
   .msg.bot {
     align-self: flex-start;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(22,22,26,0.08);
     border-bottom-left-radius: 6px;
   }
   .msg.user {
     align-self: flex-end;
-    background: linear-gradient(135deg, #d92020, #a4161a);
+    background: linear-gradient(135deg, #d7191a, #961011);
+    color: #fff;
     border-bottom-right-radius: 6px;
-    box-shadow: 0 6px 20px rgba(224,36,36,0.3);
+    box-shadow: 0 6px 20px rgba(215,25,26,0.25);
   }
-  .msg.bot strong { color: #ff9d9d; }
+  .msg.bot strong { color: #d7191a; }
   .typing {
     display: inline-flex;
     gap: 5px;
@@ -218,7 +219,7 @@
   .typing span {
     width: 7px; height: 7px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.5);
+    background: rgba(22,22,26,0.45);
     animation: blink 1.2s infinite;
   }
   .typing span:nth-child(2) { animation-delay: 0.2s; }
@@ -232,8 +233,8 @@
   .chat-input-row input[type="text"] {
     flex: 1;
     min-width: 0;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.09);
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(22,22,26,0.12);
     border-radius: 16px;
     padding: 13px 18px;
     color: var(--ink);
@@ -242,8 +243,8 @@
     outline: none;
     transition: border 0.25s;
   }
-  .chat-input-row input[type="text"]:focus { border-color: rgba(224,36,36,0.55); }
-  .chat-input-row input[type="text"]::placeholder { color: rgba(244,244,248,0.35); }
+  .chat-input-row input[type="text"]:focus { border-color: rgba(215,25,26,0.5); }
+  .chat-input-row input[type="text"]::placeholder { color: rgba(22,22,26,0.4); }
   .chat-input-row input[type="text"]:disabled {
     opacity: 0.45;
     cursor: not-allowed;
@@ -254,21 +255,21 @@
     transform: none !important;
   }
   .attach-btn-highlight {
-    border-color: rgba(224,36,36,0.6) !important;
-    box-shadow: 0 0 0 3px rgba(224,36,36,0.18), 0 6px 18px rgba(224,36,36,0.25);
+    border-color: rgba(215,25,26,0.6) !important;
+    box-shadow: 0 0 0 3px rgba(215,25,26,0.18), 0 6px 18px rgba(215,25,26,0.25);
     animation: attachPulse 2s ease-in-out infinite;
   }
   @keyframes attachPulse {
-    0%, 100% { box-shadow: 0 0 0 3px rgba(224,36,36,0.18), 0 6px 18px rgba(224,36,36,0.25); }
-    50% { box-shadow: 0 0 0 6px rgba(224,36,36,0.10), 0 6px 22px rgba(224,36,36,0.4); }
+    0%, 100% { box-shadow: 0 0 0 3px rgba(215,25,26,0.18), 0 6px 18px rgba(215,25,26,0.25); }
+    50% { box-shadow: 0 0 0 6px rgba(215,25,26,0.10), 0 6px 22px rgba(215,25,26,0.4); }
   }
   .icon-btn {
     width: 46px;
     height: 46px;
     flex-shrink: 0;
     border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.09);
-    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(22,22,26,0.12);
+    background: rgba(255,255,255,0.8);
     color: var(--ink);
     font-size: 19px;
     cursor: pointer;
@@ -277,10 +278,11 @@
     align-items: center;
     justify-content: center;
   }
-  .icon-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+  .icon-btn:hover { background: #ffffff; transform: translateY(-1px); }
   .icon-btn.send {
-    background: linear-gradient(135deg, var(--red), #b01a1a);
+    background: linear-gradient(135deg, var(--red), #961011);
     border: none;
+    color: #fff;
     box-shadow: 0 6px 18px var(--red-glow);
   }
   .icon-btn.send:hover { transform: translateY(-1px) scale(1.04); }
@@ -290,7 +292,7 @@
     position: fixed;
     inset: 0;
     z-index: 20;
-    background: rgba(3,3,8,0.75);
+    background: rgba(22,22,26,0.45);
     backdrop-filter: blur(6px);
     display: none;
     align-items: center;
@@ -299,13 +301,13 @@
   }
   .modal-overlay.show { display: flex; animation: fadeIn 0.25s ease; }
   .modal {
-    background: #101018;
-    border: 1px solid rgba(255,255,255,0.1);
+    background: #ffffff;
+    border: 1px solid rgba(22,22,26,0.08);
     border-radius: 22px;
     padding: 30px;
     max-width: 460px;
     width: 100%;
-    box-shadow: 0 30px 90px rgba(0,0,0,0.7);
+    box-shadow: 0 30px 90px rgba(0,0,0,0.22);
     animation: popIn 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
   }
   .modal h3 { font-size: 19px; margin-bottom: 12px; }
@@ -333,8 +335,8 @@
     transition: all 0.2s;
   }
   .btn-accept { background: var(--red); color: #fff; }
-  .btn-accept:disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.35); cursor: not-allowed; }
-  .btn-cancel-m { background: rgba(255,255,255,0.07); color: var(--ink); }
+  .btn-accept:disabled { background: rgba(22,22,26,0.08); color: rgba(22,22,26,0.35); cursor: not-allowed; }
+  .btn-cancel-m { background: rgba(22,22,26,0.06); color: var(--ink); }
 
   /* ---------- footer ---------- */
   footer {
@@ -358,10 +360,10 @@
     opacity: 0.85;
     transition: opacity 0.2s;
   }
-  .footer-links a:hover { opacity: 1; color: #ff8a8a; }
+  .footer-links a:hover { opacity: 1; color: #d7191a; }
   .smallprint {
     font-size: 11.5px;
-    color: rgba(244,244,248,0.38);
+    color: rgba(22,22,26,0.45);
     line-height: 1.7;
     max-width: 560px;
     margin: 0 auto;
@@ -403,7 +405,7 @@
     </div>
     <nav class="logins">
       <a href="client-login.html">Client login</a>
-      <a href="dashboard-preview.html" class="admin">Admin</a>
+      <a href="admin/" class="admin">Admin</a>
     </nav>
   </header>
 
@@ -536,12 +538,12 @@
     ctx.font = '800 300px Inter, Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(224, 36, 36, 0.85)';
+    ctx.shadowColor = 'rgba(215, 25, 26, 0.85)';
     ctx.shadowBlur = 40;
-    ctx.fillStyle = '#f23434';
+    ctx.fillStyle = '#d7191a';
     ctx.fillText('W', 256, 278);
     ctx.shadowBlur = 0;
-    ctx.fillStyle = '#f03a3a';
+    ctx.fillStyle = '#c41314';
     ctx.fillText('W', 256, 278);
     return new THREE.CanvasTexture(c);
   }
@@ -584,13 +586,13 @@
         float fresnel = pow(1.0 - max(dot(viewDir, normalize(vNormal)), 0.0), 2.8);
         // liquid state: fiery red-violet noise
         float h = smoothstep(-0.7, 0.9, vNoise);
-        vec3 liquid = mix(vec3(0.10, 0.06, 0.18), vec3(0.48, 0.23, 0.90), h);
-        liquid = mix(liquid, vec3(0.88, 0.14, 0.14), smoothstep(0.55, 1.0, h));
+        vec3 liquid = mix(vec3(0.07, 0.07, 0.08), vec3(0.42, 0.10, 0.11), h);
+        liquid = mix(liquid, vec3(0.84, 0.10, 0.10), smoothstep(0.55, 1.0, h));
         liquid += fresnel * vec3(1.0, 0.45, 0.40) * 0.8;
         // glass state: nearly clear with a subtle red-violet rim
-        vec3 glass = vec3(0.04, 0.04, 0.08) + fresnel * mix(vec3(0.45, 0.25, 0.85), vec3(0.95, 0.26, 0.24), fresnel) * 0.45;
+        vec3 glass = vec3(0.99, 0.99, 0.97) + fresnel * mix(vec3(0.55, 0.53, 0.51), vec3(0.84, 0.10, 0.10), fresnel) * 0.45;
         vec3 col = mix(liquid, glass, uProgress);
-        float alpha = mix(0.9, 0.07 + fresnel * 0.45, uProgress);
+        float alpha = mix(0.9, 0.10 + fresnel * 0.50, uProgress);
         gl_FragColor = vec4(col, alpha);
       }
     `,
@@ -622,11 +624,11 @@
   /* soft halo behind planet */
   const haloMat = new THREE.SpriteMaterial({
     map: makeGlowTexture(),
-    color: 0xe02424,
+    color: 0xd7191a,
     transparent: true,
     opacity: 0,
     depthWrite: false,
-    blending: THREE.AdditiveBlending
+    blending: THREE.NormalBlending
   });
   const halo = new THREE.Sprite(haloMat);
   halo.scale.setScalar(5.2);
@@ -640,8 +642,8 @@
     const ctx = c.getContext('2d');
     const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
     g.addColorStop(0, 'rgba(255,120,110,0.85)');
-    g.addColorStop(0.35, 'rgba(224,36,36,0.32)');
-    g.addColorStop(1, 'rgba(224,36,36,0)');
+    g.addColorStop(0.35, 'rgba(215,25,26,0.32)');
+    g.addColorStop(1, 'rgba(215,25,26,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 128, 128);
     return new THREE.CanvasTexture(c);
@@ -655,11 +657,11 @@
 
   // orbiters = jobs and candidates circling the W
   const orbiterSpecs = [
-    { r: 1.95, size: 0.10, speed: 0.55, tilt: 0.45, color: '#a78bfa' },
+    { r: 1.95, size: 0.10, speed: 0.55, tilt: 0.45, color: '#16161a' },
     { r: 2.45, size: 0.07, speed: -0.38, tilt: -0.3, color: '#f87171' },
-    { r: 3.00, size: 0.13, speed: 0.26, tilt: 0.15, color: '#c4b5fd' },
+    { r: 3.00, size: 0.13, speed: 0.26, tilt: 0.15, color: '#6b6b72' },
     { r: 3.55, size: 0.055, speed: -0.18, tilt: 0.6, color: '#fca5a5' },
-    { r: 2.80, size: 0.045, speed: 0.42, tilt: -0.55, color: '#ddd6fe' }
+    { r: 2.80, size: 0.045, speed: 0.42, tilt: -0.55, color: '#3f3f46' }
   ];
 
   orbiterSpecs.forEach(spec => {
@@ -681,7 +683,7 @@
     }
     const ring = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 })
+      new THREE.LineBasicMaterial({ color: 0x16161a, transparent: true, opacity: 0 })
     );
     pivot.add(ring);
 
@@ -692,7 +694,7 @@
       transparent: true,
       opacity: 0,
       depthWrite: false,
-      blending: THREE.AdditiveBlending
+      blending: THREE.NormalBlending
     }));
     glow.scale.setScalar(spec.size * 7);
     glow.position.x = spec.r;
@@ -716,7 +718,7 @@
   const starGeo = new THREE.BufferGeometry();
   starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
   const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
-    color: 0xffffff, size: 0.055, transparent: true, opacity: 0.75, sizeAttenuation: true
+    color: 0x2a2a30, size: 0.055, transparent: true, opacity: 0.5, sizeAttenuation: true
   }));
   scene.add(stars);
 
@@ -768,14 +770,14 @@
     wSprite.material.opacity = Math.max(0, (e - 0.55) / 0.45) * 0.92;
     wSprite.scale.setScalar(1.32 + Math.sin(t * 0.8) * 0.03);
 
-    haloMat.opacity = e * 0.45;
+    haloMat.opacity = e * 0.35;
     stars.rotation.y = t * 0.008;
 
     orbiters.forEach(o => {
       const a = t * o.speed + o.phase;
       o.pivot.rotation.y = a;
       o.mesh.material.opacity = e;
-      o.ring.material.opacity = e * 0.07;
+      o.ring.material.opacity = e * 0.10;
       o.glow.material.opacity = e * (0.5 + Math.sin(t * 1.3 + o.phase) * 0.18);
     });
 
