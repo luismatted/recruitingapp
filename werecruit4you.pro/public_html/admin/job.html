@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Job Candidates | WeRecruit4You</title>
+  <link rel="icon" href="../favicon.png" type="image/png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --red: #e02424;
+      --gray-100: #f8fafc;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-600: #475569;
+      --gray-800: #0f172a;
+      --white: #ffffff;
+    }
+    body {
+      background: var(--gray-100);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--gray-800);
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .logo {
+      height: 52px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--red);
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .back-btn:hover {
+      text-decoration: underline;
+    }
+    .job-header {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 28px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+      border: 1px solid var(--gray-200);
+      position: relative;
+    }
+    .job-title {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--gray-800);
+    }
+    .job-desc {
+      color: var(--gray-600);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .stage-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0 0;
+      border-top: 1px dashed var(--gray-200);
+    }
+    .stage-label {
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+    select#stageSelect {
+      padding: 8px 12px;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      font-size: 14px;
+      background: white;
+      min-width: 160px;
+    }
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 16px;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(224, 36, 36, 0.1);
+    }
+    .filter-select {
+      padding: 10px 16px;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      font-size: 15px;
+      background: white;
+      min-width: 150px;
+    }
+    .sort-select {
+      padding: 10px 16px;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      font-size: 15px;
+      background: white;
+      min-width: 180px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 32px 0 20px;
+      color: var(--gray-800);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .add-candidate-btn {
+      background: var(--red);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    th {
+      background: #fafafa;
+      padding: 16px 20px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--gray-600);
+      border-bottom: 1px solid var(--gray-200);
+      white-space: nowrap;
+    }
+    td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      white-space: nowrap;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover {
+      background: #fcfcfd;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .status-new { background: #eef7ff; color: #1d78ff; }
+    .status-reviewed { background: #fff8e6; color: #d97706; }
+    .status-interview { background: #ffebee; color: #c2185b; }
+    .status-offer { background: #ecfdf5; color: #0d9488; }
+    .status-hired { background: #dcfce7; color: #166534; }
+    .status-rejected { background: #f1f5f9; color: #64748b; }
+    .candidate-meta {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 4px;
+    }
+    .candidate-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .candidate-btn {
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-edit-cand { background: #fff8e6; color: #d97706; }
+    .btn-delete-cand { background: #fee2e2; color: #dc2626; }
+    .no-results {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray-600);
+      font-size: 15px;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--gray-600);
+    }
+    .modal-body {
+      color: var(--gray-600);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-danger {
+      padding: 12px 24px;
+      background: #dc2626;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+    }
+    .btn-secondary {
+      padding: 12px 24px;
+      background: var(--gray-200);
+      color: var(--gray-800);
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 16px; }
+      .job-header { padding: 20px; }
+      .job-title { font-size: 20px; }
+      .search-bar { flex-direction: column; align-items: stretch; }
+      .search-input, .filter-select, .sort-select { width: 100%; min-width: unset; }
+      .section-title { flex-direction: column; align-items: flex-start; }
+      th, td { padding: 12px 16px; font-size: 14px; }
+      .candidate-actions { flex-wrap: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-btn" id="back-link">← Back to Pipeline Board</a>
+      <img src="../logo-werecruit4you.png" alt="WeRecruit4You" class="logo" />
+    </header>
+
+    <div class="job-header">
+      <div class="job-title" id="job-title">Loading job...</div>
+      <div class="job-desc" id="job-desc">—</div>
+      <div class="stage-control">
+        <span class="stage-label">Job Stage:</span>
+        <select id="stageSelect" onchange="updateJobStage()">
+          <option value="planning">📌 Planning</option>
+          <option value="hiring">🔍 Hiring</option>
+          <option value="offer">💼 Offer</option>
+          <option value="closed">✅ Closed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search by name, nationality, or location..." oninput="filterAndSortCandidates()">
+      <select class="filter-select" id="statusFilter" onchange="filterAndSortCandidates()">
+        <option value="all">All Statuses</option>
+        <option value="new">New</option>
+        <option value="reviewed">Reviewed</option>
+        <option value="interview">Interview</option>
+        <option value="offer">Offer</option>
+        <option value="hired">Hired</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <select class="sort-select" id="sortSelect" onchange="filterAndSortCandidates()">
+        <option value="score-desc">Match Score: High to Low</option>
+        <option value="score-asc">Match Score: Low to High</option>
+        <option value="name-asc">Name: A to Z</option>
+        <option value="name-desc">Name: Z to A</option>
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+      </select>
+    </div>
+
+    <div class="section-title">
+      Candidates
+      <button class="add-candidate-btn" onclick="addNewCandidate()">+ Add Candidate</button>
+    </div>
+    
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Match</th>
+            <th>Status</th>
+            <th>Location</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="candidates-table">
+          <!-- Candidates will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+    <div id="no-results" class="no-results" style="display:none;">No candidates match your search.</div>
+  </div>
+
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Delete Candidate</div>
+        <button class="modal-close" onclick="closeDeleteModal()">×</button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete <strong id="deleteCandidateName"></strong>?<br>
+        This action cannot be undone.
+      </div>
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="confirmDeleteCandidate()">Delete</button>
+        <button class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://werecruit4you.pro/api';
+    let currentJob = null;
+    let jobId = null;
+    let adminEmail = null;
+    let allCandidates = [];
+    let deletingCandidateId = null;
+
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        id: params.get('id'),
+        email: params.get('email')
+      };
+    }
+
+    function getAdminEmail() {
+      const email = localStorage.getItem('wr4y_admin_email');
+      if (!email || !localStorage.getItem('wr4y_admin_logged_in')) {
+        window.location.href = 'login.html';
+        return null;
+      }
+      return email.toLowerCase();
+    }
+
+    function getHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'X-Admin-Email': adminEmail
+      };
+    }
+
+    function getStatusClass(status) {
+      return `status-${status}`;
+    }
+
+    function setupBackButton() {
+      const lastView = sessionStorage.getItem('lastAdminView') || 'pipeline';
+      const backLink = document.getElementById('back-link');
+      if (lastView === 'ai') {
+        backLink.textContent = '← Back to AI Assistant';
+      } else {
+        backLink.textContent = '← Back to Pipeline Board';
+      }
+    }
+
+    async function loadJob() {
+      const { id, email } = getUrlParams();
+      jobId = id;
+      adminEmail = email || getAdminEmail();
+      
+      if (!id || !adminEmail) {
+        alert('Job ID or admin email missing');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/jobs.php`, {
+          headers: getHeaders()
+        });
+        const data = await response.json();
+        const jobs = data.jobs || [];
+        
+        currentJob = jobs.find(j => j.id === id);
+        if (!currentJob) {
+          document.querySelector('.container').innerHTML = '<h2>Job not found</h2>';
+          return;
+        }
+
+        document.getElementById('job-title').textContent = currentJob.title;
+        document.getElementById('job-desc').textContent = currentJob.summary || currentJob.description;
+        document.getElementById('stageSelect').value = currentJob.stage;
+
+        allCandidates = currentJob.candidates || [];
+        filterAndSortCandidates();
+        setupBackButton();
+      } catch (e) {
+        console.error('Failed to load job:', e);
+        document.querySelector('.container').innerHTML = '<h2>Error loading job</h2>';
+      }
+    }
+
+    function filterAndSortCandidates() {
+      const searchText = document.getElementById('searchInput').value.toLowerCase().trim();
+      const statusFilter = document.getElementById('statusFilter').value;
+      const sortValue = document.getElementById('sortSelect').value;
+
+      let filtered = [...allCandidates];
+
+      if (searchText) {
+        filtered = filtered.filter(c => 
+          (c.name && c.name.toLowerCase().includes(searchText)) ||
+          (c.nationality && c.nationality.toLowerCase().includes(searchText)) ||
+          (c.location && c.location.toLowerCase().includes(searchText)) ||
+          (c.email && c.email.toLowerCase().includes(searchText))
+        );
+      }
+
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(c => c.status === statusFilter);
+      }
+
+      filtered.sort((a, b) => {
+        switch (sortValue) {
+          case 'score-desc':
+            return (b.match_score || 0) - (a.match_score || 0);
+          case 'score-asc':
+            return (a.match_score || 0) - (b.match_score || 0);
+          case 'name-asc':
+            return (a.name || '').localeCompare(b.name || '');
+          case 'name-desc':
+            return (b.name || '').localeCompare(a.name || '');
+          case 'newest':
+            return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+          case 'oldest':
+            return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+          default:
+            return 0;
+        }
+      });
+
+      renderCandidates(filtered);
+    }
+
+    function renderCandidates(candidates) {
+      const tableBody = document.getElementById('candidates-table');
+      const noResults = document.getElementById('no-results');
+      tableBody.innerHTML = '';
+
+      if (!candidates || candidates.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--gray-600);">No candidates yet</td></tr>`;
+        noResults.style.display = 'none';
+        return;
+      }
+
+      if (candidates.length === 0) {
+        noResults.style.display = 'block';
+        return;
+      } else {
+        noResults.style.display = 'none';
+      }
+
+      candidates.forEach(candidate => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <div>${candidate.name}</div>
+            <div class="candidate-meta">${candidate.nationality || '—'} • ${candidate.email || '—'}</div>
+          </td>
+          <td>${candidate.match_score || candidate.matchScore || 0}%</td>
+          <td><span class="status-badge ${getStatusClass(candidate.status || 'new')}">${(candidate.status || 'New').charAt(0).toUpperCase() + (candidate.status || 'new').slice(1)}</span></td>
+          <td>${candidate.location || '—'}</td>
+          <td>
+            <div class="candidate-actions">
+              <button class="candidate-btn btn-edit-cand" onclick="editCandidate('${candidate.id}')">Edit</button>
+              <button class="candidate-btn btn-delete-cand" onclick="promptDeleteCandidate('${candidate.id}', '${candidate.name.replace(/'/g, "\\'")}')">Delete</button>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    async function updateJobStage() {
+      const newStage = document.getElementById('stageSelect').value;
+      if (!currentJob) return;
+
+      try {
+        const response = await fetch(`${API_URL}/jobs.php`, {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify({ id: currentJob.id, stage: newStage })
+        });
+        const data = await response.json();
+        if (data.success) {
+          console.log(`Job stage updated to: ${newStage}`);
+        }
+      } catch (e) {
+        console.error('Failed to update stage:', e);
+      }
+    }
+
+    function editCandidate(candidateId) {
+      sessionStorage.setItem('lastAdminView', sessionStorage.getItem('lastAdminView') || 'pipeline');
+      window.location.href = `candidate.html?id=${candidateId}&jobId=${currentJob.id}&email=${encodeURIComponent(adminEmail)}`;
+    }
+
+    function promptDeleteCandidate(candidateId, candidateName) {
+      deletingCandidateId = candidateId;
+      document.getElementById('deleteCandidateName').textContent = candidateName;
+      document.getElementById('deleteModal').classList.add('show');
+    }
+
+    async function confirmDeleteCandidate() {
+      if (!deletingCandidateId) return;
+      
+      try {
+        const response = await fetch(`${API_URL}/candidates.php`, {
+          method: 'DELETE',
+          headers: getHeaders(),
+          body: JSON.stringify({ id: deletingCandidateId })
+        });
+        const data = await response.json();
+        if (data.success) {
+          closeDeleteModal();
+          allCandidates = allCandidates.filter(c => c.id !== deletingCandidateId);
+          filterAndSortCandidates();
+        } else {
+          alert('Error: ' + (data.error || 'Failed to delete candidate'));
+        }
+      } catch (e) {
+        console.error('Failed to delete candidate:', e);
+        alert('Failed to delete candidate. Check console.');
+      }
+      deletingCandidateId = null;
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').classList.remove('show');
+      deletingCandidateId = null;
+    }
+
+    function addNewCandidate() {
+      sessionStorage.setItem('lastAdminView', sessionStorage.getItem('lastAdminView') || 'pipeline');
+      window.location.href = `candidate.html?jobId=${currentJob.id}&email=${encodeURIComponent(adminEmail)}&new=true`;
+    }
+
+    loadJob();
+  </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | WeRecruit4You</title>
+  <link rel="icon" href="../favicon.png" type="image/png">
+  <style>
+    body { font-family: Inter, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+    .logo { text-align: center; margin-bottom: 32px; }
+    .logo img { height: 52px; }
+    input { width: 100%; padding: 14px; margin: 12px 0; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 16px; }
+    button { width: 100%; padding: 14px; background: #e02424; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+    .error { color: #e02424; margin-top: 12px; font-size: 14px; }
+    .back-link { display: block; text-align: center; margin-top: 20px; color: #475569; text-decoration: none; font-size: 14px; }
+    .back-link:hover { color: #e02424; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <img src="../logo-werecruit4you.png" alt="WeRecruit4You" />
+    </div>
+    <h2 style="text-align:center; margin-bottom: 24px; color: #0f172a;">Admin Login</h2>
+    
+    <input type="email" id="email" placeholder="Your work email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    
+    <button onclick="login()">Continue</button>
+    
+    <div class="error" id="error" style="display:none;"></div>
+    
+    <a href="../index.html" class="back-link">← Back to homepage</a>
+  </div>
+
+  <script>
+    async function login() {
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('error');
+      
+      if (!email || !email.includes('@')) {
+        showError('Please enter a valid email');
+        return;
+      }
+      
+      if (!password) {
+        showError('Please enter your password');
+        return;
+      }
+
+      try {
+        const response = await fetch('https://werecruit4you.pro/api/auth.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          localStorage.setItem('wr4y_admin_email', data.email);
+          localStorage.setItem('wr4y_admin_logged_in', 'true');
+          window.location.href = 'index.html';
+        } else {
+          showError(data.error || 'Access denied. Contact your admin.');
+        }
+      } catch (e) {
+        showError('Login failed. Please try again.');
+      }
+    }
+
+    function showError(message) {
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
