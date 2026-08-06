@@ -18,8 +18,14 @@ $approvedAdmins = [
     'kewanzhi@anta.com'
 ];
 
-// Simple hardcoded hash — change this password!
-$correctHash = '$2b$10$PUvrJ1jODVncG/oRpsNTIO3nuDHNc/XXnz8DQFOzvZQjVUJ55UuCG'; // password = "antahr"
+// Password hash lives in the server .env, not in the repository
+$correctHash = $envVars['ADMIN_PASSWORD_HASH'] ?? '';
+
+if (empty($correctHash)) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Admin credentials not configured on the server']);
+    exit;
+}
 
 if (!in_array($email, $approvedAdmins)) {
     http_response_code(403);

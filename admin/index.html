@@ -665,6 +665,294 @@
       .btn-small { min-width: 80px; }
       .action-buttons { flex-direction: column; }
     }
+
+    /* ============================================================
+       DARK THEME OVERRIDES (cosmic brand, matches landing page)
+       ============================================================ */
+    :root {
+      --gray-100: #05050a;
+      --gray-200: rgba(255, 255, 255, 0.09);
+      --gray-300: rgba(255, 255, 255, 0.18);
+      --gray-600: rgba(244, 244, 248, 0.55);
+      --gray-800: #f4f4f8;
+      --white: rgba(255, 255, 255, 0.045);
+    }
+    body {
+      background:
+        radial-gradient(ellipse 900px 600px at 15% -10%, rgba(224, 36, 36, 0.10), transparent 60%),
+        radial-gradient(ellipse 800px 600px at 90% 110%, rgba(124, 58, 237, 0.10), transparent 60%),
+        #05050a;
+      min-height: 100vh;
+    }
+    .logo {
+      height: 34px !important;
+      background: #fff;
+      padding: 6px 12px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    }
+    .user-info { color: var(--gray-600); }
+    .logout { color: #ff7b7b; }
+
+    .tabs { background: rgba(255, 255, 255, 0.05); padding: 4px; }
+    .tab-btn { background: transparent; color: var(--gray-600); }
+    .tab-btn.active { background: var(--red); color: #fff; }
+
+    .stat-box, .job-card, .job-selector, .chat-panel, .modal {
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    }
+    .stat-box-value {
+      background: linear-gradient(100deg, #ff6b6b, #e02424 55%, #a78bfa);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .stat-value { color: #ff6b6b; }
+
+    .filter-select, .search-input, .form-input, .form-textarea, .form-select,
+    select.stage-select, .chat-input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      color: var(--gray-800);
+    }
+    .filter-select option, .form-select option, select.stage-select option {
+      background: #14141f;
+      color: #f4f4f8;
+    }
+    .search-input::placeholder, .form-input::placeholder, .form-textarea::placeholder,
+    .chat-input::placeholder { color: rgba(244, 244, 248, 0.30); }
+    .search-input:focus, .form-input:focus, .form-textarea:focus, .chat-input:focus {
+      border-color: rgba(224, 36, 36, 0.55);
+      box-shadow: 0 0 0 3px rgba(224, 36, 36, 0.15);
+    }
+
+    .column {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+    .job-card:hover { border-color: rgba(255, 255, 255, 0.22); }
+    .jd-full { background: rgba(0, 0, 0, 0.30); }
+    .job-expanded, .stage-control { border-top-color: rgba(255, 255, 255, 0.10); }
+
+    .ai-message { background: rgba(124, 58, 237, 0.12); border-left-color: #a78bfa; }
+    .user-message { background: rgba(224, 36, 36, 0.12); border-right-color: var(--red); }
+    .job-option { border-color: rgba(255, 255, 255, 0.10); background: rgba(255, 255, 255, 0.03); }
+    .job-option:hover { border-color: rgba(224, 36, 36, 0.5); }
+    .job-option.active { border-color: var(--red); background: rgba(224, 36, 36, 0.12); }
+
+    .btn-small, .btn {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .btn-add-candidate { background: rgba(2, 132, 199, 0.14); color: #7dd3fc; }
+    .btn-export { background: rgba(13, 148, 136, 0.14); color: #5eead4; }
+    .btn-edit { background: rgba(217, 119, 6, 0.14); color: #fcd34d; }
+    .btn-delete { background: rgba(220, 38, 38, 0.16); color: #fca5a5; }
+    .btn-duplicate { background: rgba(99, 102, 241, 0.16); color: #c7d2fe; }
+    .btn-reject { background: rgba(255, 255, 255, 0.08); color: var(--gray-800); }
+    .btn-rescreen { background: rgba(99, 102, 241, 0.16); color: #c7d2fe; }
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: var(--gray-800); }
+
+    .page-btn { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.10); color: var(--gray-800); }
+    .page-btn:hover { background: rgba(255, 255, 255, 0.10); }
+
+    .add-job-btn { box-shadow: 0 6px 22px rgba(224, 36, 36, 0.45); }
+
+    .match-strong { background: rgba(22, 101, 52, 0.25); color: #86efac; }
+    .match-good { background: rgba(13, 148, 136, 0.22); color: #5eead4; }
+    .match-moderate { background: rgba(217, 119, 6, 0.20); color: #fcd34d; }
+    .match-weak { background: rgba(220, 38, 38, 0.22); color: #fca5a5; }
+
+    .attach-btn { background: rgba(255, 255, 255, 0.08); color: var(--gray-800); }
+    .attach-btn:hover { background: rgba(255, 255, 255, 0.14); }
+
+    .upload-zone { background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.14); }
+    .upload-zone:hover { border-color: var(--red); background: rgba(224, 36, 36, 0.08); }
+    .upload-zone.processing { border-color: var(--red); background: rgba(224, 36, 36, 0.08); }
+
+    .modal { background: rgba(16, 16, 26, 0.92); }
+    .modal-overlay { backdrop-filter: blur(6px); }
+
+    /* ============================================================
+       PROFESSIONAL REDESIGN — clean data dashboard, no emojis
+       ============================================================ */
+    .tabs { border-radius: 10px; }
+    .tab-btn { border-radius: 8px; font-size: 14px; padding: 10px 20px; }
+
+    .stats-bar { grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .stat-box {
+      border-radius: 14px;
+      padding: 18px 16px;
+      text-align: left;
+      border-left: 3px solid var(--red);
+    }
+    .stat-box-value { font-size: 26px; margin-bottom: 2px; }
+    .stat-box-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+    }
+
+    /* jobs table */
+    .jobs-table-wrap {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .jobs-table { width: 100%; border-collapse: collapse; }
+    .jobs-table th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+      color: rgba(244, 244, 248, 0.45);
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      white-space: nowrap;
+    }
+    .jobs-table td {
+      padding: 15px 18px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+    }
+    .jobs-table tbody tr { transition: background 0.15s; }
+    .jobs-table tbody tr:hover { background: rgba(255, 255, 255, 0.035); }
+    .jobs-table tbody tr:last-child td { border-bottom: none; }
+
+    .jt-title { font-weight: 700; font-size: 14.5px; color: #f4f4f8; }
+    .jt-sub { font-size: 12px; color: rgba(244, 244, 248, 0.45); margin-top: 2px; }
+    .jt-meta { font-size: 13px; color: rgba(244, 244, 248, 0.6); white-space: nowrap; }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .pill-planning { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+    .pill-hiring { background: rgba(224, 36, 36, 0.16); color: #ff8a8a; }
+    .pill-offer { background: rgba(217, 119, 6, 0.16); color: #fcd34d; }
+    .pill-closed { background: rgba(13, 148, 136, 0.16); color: #5eead4; }
+    .pill-cat { background: rgba(124, 58, 237, 0.14); color: #c4b5fd; }
+
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #f4f4f8;
+      white-space: nowrap;
+    }
+    .score-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .score-high { background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, 0.6); }
+    .score-mid { background: #fcd34d; box-shadow: 0 0 8px rgba(252, 211, 77, 0.5); }
+    .score-low { background: #f87171; box-shadow: 0 0 8px rgba(248, 113, 113, 0.5); }
+    .score-none { color: rgba(244, 244, 248, 0.3); font-weight: 500; }
+
+    .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .ra-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      color: rgba(244, 244, 248, 0.75);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .ra-btn:hover { background: rgba(255, 255, 255, 0.11); color: #fff; }
+    .ra-btn.primary { background: rgba(224, 36, 36, 0.16); border-color: rgba(224, 36, 36, 0.3); color: #ff9d9d; }
+    .ra-btn.primary:hover { background: rgba(224, 36, 36, 0.28); color: #fff; }
+    .ra-btn.danger:hover { background: rgba(220, 38, 38, 0.2); border-color: rgba(220, 38, 38, 0.4); color: #fca5a5; }
+
+    .stage-mini {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      color: #f4f4f8;
+      border-radius: 8px;
+      font-size: 12px;
+      padding: 6px 8px;
+    }
+    .stage-mini option { background: #14141f; }
+
+    .table-empty {
+      padding: 48px 20px;
+      text-align: center;
+      color: rgba(244, 244, 248, 0.4);
+      font-size: 14px;
+    }
+    .table-count {
+      font-size: 12px;
+      color: rgba(244, 244, 248, 0.4);
+      padding: 12px 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* mobile: table becomes stacked rows */
+    @media (max-width: 860px) {
+      .jobs-table thead { display: none; }
+      .jobs-table, .jobs-table tbody, .jobs-table tr, .jobs-table td { display: block; width: 100%; }
+      .jobs-table tr { padding: 14px 16px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+      .jobs-table td { padding: 4px 0; border-bottom: none; }
+      .row-actions { justify-content: flex-start; flex-wrap: wrap; margin-top: 8px; }
+    }
+
+    /* ---------- talent pool view ---------- */
+    .pool-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: rgba(244, 244, 248, 0.85);
+      margin: 4px 2px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pool-count {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(224, 36, 36, 0.18);
+      color: #ff8a8a;
+      border: 1px solid rgba(224, 36, 36, 0.35);
+      border-radius: 999px;
+      padding: 2px 10px;
+    }
+    .pool-status {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: #f4f4f8;
+      font-size: 12px;
+      padding: 5px 8px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .pool-status:focus { outline: none; border-color: rgba(224, 36, 36, 0.5); }
+    .pool-status option { background: #14141f; color: #f4f4f8; }
+    .pool-empty {
+      text-align: center;
+      padding: 28px 16px;
+      color: rgba(244, 244, 248, 0.4);
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -678,8 +966,9 @@
     </header>
 
     <div class="tabs">
-      <button class="tab-btn" data-view="ai">🤖 AI Assistant</button>
-      <button class="tab-btn active" data-view="pipeline">📋 Pipeline Board</button>
+      <button class="tab-btn" data-view="ai">AI Assistant</button>
+      <button class="tab-btn active" data-view="pipeline">Jobs</button>
+      <button class="tab-btn" data-view="pool">Talent Pool</button>
     </div>
 
     <div class="view" id="ai-view">
@@ -692,13 +981,13 @@
           <div class="messages" id="messages">
             <div class="message ai-message">
               Hello! I'm your AI recruiting assistant.  
-              Select a job on the right, then paste a candidate's profile — or click 📎 to upload their CV (PDF, Word, TXT).  
+              Select a job on the right, then paste a candidate's profile — or attach their CV (PDF, Word, TXT).  
               I'll analyze fit and help you decide.
             </div>
           </div>
           <div class="input-area">
-            <button class="attach-btn" id="attachBtn" title="Upload CV (PDF, Word, TXT)" disabled>📎</button>
-            <textarea id="userInput" class="chat-input" placeholder="Paste candidate info or upload a CV with 📎..." disabled></textarea>
+            <button class="attach-btn" id="attachBtn" title="Upload CV (PDF, Word, TXT)" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
+            <textarea id="userInput" class="chat-input" placeholder="Paste candidate info or attach a CV..." disabled></textarea>
             <button class="send-btn" id="sendBtn" disabled>➤</button>
           </div>
           <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx,.txt" style="display:none;">
@@ -708,9 +997,9 @@
           <div class="selector-title">Your Open Jobs</div>
           <div id="jobOptions"></div>
           <div class="action-buttons" id="actionButtons" style="display:none;">
-            <button class="btn btn-add" id="addCandidateBtn">✅ Add to Job</button>
-            <button class="btn btn-reject" id="rejectBtn">❌ Reject</button>
-            <button class="btn btn-rescreen" id="rescreenBtn">🔄 New Screening</button>
+            <button class="btn btn-add" id="addCandidateBtn">Add to Job</button>
+            <button class="btn btn-reject" id="rejectBtn">Reject</button>
+            <button class="btn btn-rescreen" id="rescreenBtn">New Screening</button>
           </div>
         </div>
       </div>
@@ -741,8 +1030,8 @@
       </div>
 
       <div class="filters-bar">
-        <input type="text" class="search-input" id="jobSearchInput" placeholder="🔍 Search jobs by title..." oninput="applyFilter()">
-        <span class="filter-label">Filter by category:</span>
+        <input type="text" class="search-input" id="jobSearchInput" placeholder="Search jobs by title, summary or location..." oninput="applyFilter()">
+        <span class="filter-label">Category</span>
         <select class="filter-select" id="categoryFilter" onchange="applyFilter()">
           <option value="all">All Categories</option>
           <option value="Finance">Finance</option>
@@ -754,41 +1043,68 @@
           <option value="Product">Product</option>
           <option value="Customer Success">Customer Success</option>
         </select>
+        <span class="filter-label">Stage</span>
+        <select class="filter-select" id="stageFilter" onchange="applyFilter()">
+          <option value="all">All Stages</option>
+          <option value="planning">Planning</option>
+          <option value="hiring">Hiring</option>
+          <option value="offer">Offer</option>
+          <option value="closed">Closed</option>
+        </select>
       </div>
 
-      <div class="pipeline" id="pipeline-board">
-        <div class="column" data-stage="planning">
-          <div class="column-header">
-            <div class="column-title">📌 Planning</div>
-            <div class="column-count" id="count-planning">0</div>
-          </div>
-          <div class="jobs-list" id="jobs-planning"></div>
-          <div class="pagination" id="pagination-planning"></div>
-        </div>
-        <div class="column" data-stage="hiring">
-          <div class="column-header">
-            <div class="column-title">🔍 Hiring</div>
-            <div class="column-count" id="count-hiring">0</div>
-          </div>
-          <div class="jobs-list" id="jobs-hiring"></div>
-          <div class="pagination" id="pagination-hiring"></div>
-        </div>
-        <div class="column" data-stage="offer">
-          <div class="column-header">
-            <div class="column-title">💼 Offer</div>
-            <div class="column-count" id="count-offer">0</div>
-          </div>
-          <div class="jobs-list" id="jobs-offer"></div>
-          <div class="pagination" id="pagination-offer"></div>
-        </div>
-        <div class="column" data-stage="closed">
-          <div class="column-header">
-            <div class="column-title">✅ Closed</div>
-            <div class="column-count" id="count-closed">0</div>
-          </div>
-          <div class="jobs-list" id="jobs-closed"></div>
-          <div class="pagination" id="pagination-closed"></div>
-        </div>
+      <div class="jobs-table-wrap">
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Stage</th>
+              <th>Candidates</th>
+              <th>Avg Score</th>
+              <th>Location</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="jobsTableBody"></tbody>
+        </table>
+        <div class="table-count" id="tableCount"></div>
+      </div>
+    </div>
+
+    <!-- TALENT POOL VIEW -->
+    <div class="view" id="pool-view">
+      <div class="pool-section-title">Landing page candidates <span class="pool-count" id="poolCountCands">0</span></div>
+      <div class="jobs-table-wrap" style="margin-bottom: 32px;">
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Profile</th>
+              <th>Best Match</th>
+              <th>Contact</th>
+              <th>Status</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="poolCandidatesBody"></tbody>
+        </table>
+      </div>
+
+      <div class="pool-section-title">Landing page job postings <span class="pool-count" id="poolCountJobs">0</span></div>
+      <div class="jobs-table-wrap">
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Company</th>
+              <th>Best Match</th>
+              <th>Contact</th>
+              <th>Status</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="poolJobsBody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -865,10 +1181,10 @@
       <div class="form-group">
         <label class="form-label">Initial Stage</label>
         <select class="form-select" id="newJobStage">
-          <option value="planning">📌 Planning</option>
-          <option value="hiring">🔍 Hiring</option>
-          <option value="offer">💼 Offer</option>
-          <option value="closed">✅ Closed</option>
+          <option value="planning">Planning</option>
+          <option value="hiring">Hiring</option>
+          <option value="offer">Offer</option>
+          <option value="closed">Closed</option>
         </select>
       </div>
       <div class="form-actions">
@@ -907,6 +1223,7 @@
     let lastCandidateAnalysis = null;
     let currentJobs = [];
     let currentFilter = 'all';
+    let currentStage = 'all';
     let currentSearch = '';
     let editingJobId = null;
     let deletingJobId = null;
@@ -954,6 +1271,103 @@
         renderJobSelector();
       } else if (viewName === 'pipeline') {
         renderPipeline();
+      } else if (viewName === 'pool') {
+        fetchTalentPool().then(renderPool);
+      }
+    }
+
+    /* ---------- talent pool (landing page leads) ---------- */
+    let poolData = { candidates: [], jds: [] };
+
+    function esc(s) {
+      return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function fetchTalentPool() {
+      try {
+        const response = await fetch(`${API_URL}/talent-pool.php`, { headers: getHeaders() });
+        const data = await response.json();
+        poolData.candidates = data.candidates || [];
+        poolData.jds = data.jds || [];
+      } catch (e) {
+        console.error('Failed to fetch talent pool:', e);
+        poolData = { candidates: [], jds: [] };
+      }
+    }
+
+    function poolScoreBadge(score) {
+      const s = parseInt(score) || 0;
+      const cls = s >= 75 ? 'score-high' : (s >= 50 ? 'score-mid' : 'score-low');
+      return `<span class="score-badge"><span class="score-dot ${cls}"></span>${s}%</span>`;
+    }
+
+    function poolStatusSelect(id, type, current) {
+      const opts = ['new', 'contacted', 'converted', 'archived'];
+      const options = opts.map(o => `<option value="${o}" ${o === current ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('');
+      return `<select class="pool-status" onchange="updatePoolStatus('${id}', '${type}', this.value)">${options}</select>`;
+    }
+
+    function renderPool() {
+      const candBody = document.getElementById('poolCandidatesBody');
+      const jobBody = document.getElementById('poolJobsBody');
+      document.getElementById('poolCountCands').textContent = poolData.candidates.length;
+      document.getElementById('poolCountJobs').textContent = poolData.jds.length;
+
+      if (poolData.candidates.length === 0) {
+        candBody.innerHTML = '<tr><td colspan="6" class="pool-empty">No landing page candidates yet.</td></tr>';
+      } else {
+        candBody.innerHTML = poolData.candidates.map(c => `
+          <tr>
+            <td><strong>${esc(c.name) || '—'}</strong><br><span style="opacity:.55;font-size:12px;">${esc(c.location)}</span></td>
+            <td>${esc(c.current_job_title)}${c.seniority ? ' · ' + esc(c.seniority) : ''}<br><span style="opacity:.55;font-size:12px;">${esc(c.short_description)}</span></td>
+            <td>${poolScoreBadge(c.best_match_score)}</td>
+            <td style="font-size:12px;">${esc(c.email)}${c.linkedin ? '<br>' + esc(c.linkedin) : ''}</td>
+            <td>${poolStatusSelect(c.id, 'candidate', c.status)}</td>
+            <td style="text-align:right;"><button class="ra-btn" onclick="deletePoolEntry('${c.id}', 'candidate')">Delete</button></td>
+          </tr>
+        `).join('');
+      }
+
+      if (poolData.jds.length === 0) {
+        jobBody.innerHTML = '<tr><td colspan="6" class="pool-empty">No landing page job postings yet.</td></tr>';
+      } else {
+        jobBody.innerHTML = poolData.jds.map(j => `
+          <tr>
+            <td><strong>${esc(j.title) || '—'}</strong><br><span style="opacity:.55;font-size:12px;">${esc(j.location)}</span></td>
+            <td>${esc(j.company_name)}${j.contact_name ? '<br><span style="opacity:.55;font-size:12px;">' + esc(j.contact_name) + '</span>' : ''}</td>
+            <td>${poolScoreBadge(j.best_match_score)}</td>
+            <td style="font-size:12px;">${esc(j.email)}</td>
+            <td>${poolStatusSelect(j.id, 'jd', j.status)}</td>
+            <td style="text-align:right;"><button class="ra-btn" onclick="deletePoolEntry('${j.id}', 'jd')">Delete</button></td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    async function updatePoolStatus(id, type, status) {
+      try {
+        await fetch(`${API_URL}/talent-pool.php`, {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify({ id, type, status })
+        });
+      } catch (e) {
+        console.error('Failed to update status:', e);
+      }
+    }
+
+    async function deletePoolEntry(id, type) {
+      if (!confirm('Delete this entry from the talent pool?')) return;
+      try {
+        await fetch(`${API_URL}/talent-pool.php`, {
+          method: 'DELETE',
+          headers: getHeaders(),
+          body: JSON.stringify({ id, type })
+        });
+        await fetchTalentPool();
+        renderPool();
+      } catch (e) {
+        console.error('Failed to delete entry:', e);
       }
     }
 
@@ -1027,18 +1441,18 @@
       const attachBtn = document.getElementById('attachBtn');
       attachBtn.disabled = true;
       attachBtn.classList.add('processing');
-      addMessage(`📎 Uploading ${file.name}...`, true);
+      addMessage(`Uploading ${file.name}...`, true);
       try {
         const result = await uploadDocument(file, 'candidate');
         if (result.error) {
-          addMessage('❌ ' + result.error, false);
+          addMessage('Error: ' + result.error, false);
         } else {
           document.getElementById('userInput').value = result.extracted_text;
-          addMessage(`✅ Extracted the text from <strong>${result.filename}</strong>. Review it below if you like, then press Send to screen this candidate.`, false);
+          addMessage(`Extracted the text from <strong>${result.filename}</strong>. Review it below if you like, then press Send to screen this candidate.`, false);
         }
       } catch (e) {
         console.error('CV upload failed:', e);
-        addMessage('❌ Upload failed. Check your connection and try again.', false);
+        addMessage('Upload failed. Check your connection and try again.', false);
       }
       attachBtn.disabled = false;
       attachBtn.classList.remove('processing');
@@ -1077,7 +1491,7 @@
             if (match) typeSelect.value = match.value;
           }
           if (p.skills) document.getElementById('newJobSkills').value = p.skills;
-          zoneText.textContent = `✅ Auto-filled from ${result.filename}`;
+          zoneText.textContent = `Auto-filled from ${result.filename}`;
           zoneHint.textContent = 'Review the fields below, adjust anything, then save';
         }
       } catch (e) {
@@ -1101,7 +1515,7 @@
       document.getElementById('sendBtn').disabled = false;
       document.getElementById('chatPanel').classList.remove('chat-disabled');
       
-      addMessage("🔄 Re-screening with your answers included. Click Send to analyze.", false);
+      addMessage("Re-screening with your answers included. Click Send to analyze.", false);
     }
 
     function updateStats() {
@@ -1123,134 +1537,87 @@
 
     function applyFilter() {
       currentFilter = document.getElementById('categoryFilter').value;
+      currentStage = document.getElementById('stageFilter').value;
       currentSearch = document.getElementById('jobSearchInput').value.toLowerCase().trim();
-      currentPage = { planning: 0, hiring: 0, offer: 0, closed: 0 };
       renderPipeline();
     }
 
     function getFilteredJobs() {
       let filtered = currentJobs;
-      
+
       if (currentFilter !== 'all') {
         filtered = filtered.filter(j => j.category === currentFilter);
       }
-      
+      if (currentStage !== 'all') {
+        filtered = filtered.filter(j => j.stage === currentStage);
+      }
       if (currentSearch) {
-        filtered = filtered.filter(j => 
+        filtered = filtered.filter(j =>
           (j.title && j.title.toLowerCase().includes(currentSearch)) ||
           (j.summary && j.summary.toLowerCase().includes(currentSearch)) ||
           (j.location && j.location.toLowerCase().includes(currentSearch))
         );
       }
-      
+
       return filtered;
+    }
+
+    const STAGE_LABELS = { planning: 'Planning', hiring: 'Hiring', offer: 'Offer', closed: 'Closed' };
+
+    function scoreBadge(avg, count) {
+      if (!count) return '<span class="score-none">No candidates</span>';
+      const cls = avg >= 75 ? 'score-high' : avg >= 50 ? 'score-mid' : 'score-low';
+      return `<span class="score-badge"><span class="score-dot ${cls}"></span>${avg}%</span>`;
     }
 
     function renderPipeline() {
       updateStats();
       const filteredJobs = getFilteredJobs();
-      const stages = ['planning', 'hiring', 'offer', 'closed'];
-      stages.forEach(stage => {
-        document.getElementById(`jobs-${stage}`).innerHTML = '';
-        document.getElementById(`count-${stage}`).textContent = '0';
-        document.getElementById(`pagination-${stage}`).innerHTML = '';
-      });
+      const tbody = document.getElementById('jobsTableBody');
+      tbody.innerHTML = '';
 
-      const grouped = {};
-      stages.forEach(stage => grouped[stage] = []);
+      if (filteredJobs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="table-empty">No jobs match the current filters.</div></td></tr>';
+      }
+
       filteredJobs.forEach(job => {
-        if (stages.includes(job.stage)) {
-          grouped[job.stage].push(job);
-        }
+        const count = job.candidates ? job.candidates.length : 0;
+        const avg = count > 0
+          ? Math.round(job.candidates.reduce((sum, c) => sum + (c.match_score || 0), 0) / count)
+          : 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="jt-title">${job.title}</div>
+            <div class="jt-sub">${job.summary || ''}</div>
+          </td>
+          <td>
+            <select class="stage-mini" onchange="updateJobStage('${job.id}', this.value)">
+              <option value="planning" ${job.stage === 'planning' ? 'selected' : ''}>Planning</option>
+              <option value="hiring" ${job.stage === 'hiring' ? 'selected' : ''}>Hiring</option>
+              <option value="offer" ${job.stage === 'offer' ? 'selected' : ''}>Offer</option>
+              <option value="closed" ${job.stage === 'closed' ? 'selected' : ''}>Closed</option>
+            </select>
+          </td>
+          <td class="jt-meta">${count}</td>
+          <td>${scoreBadge(avg, count)}</td>
+          <td class="jt-meta">${job.location || '—'}</td>
+          <td>
+            <div class="row-actions">
+              <button class="ra-btn primary" onclick="addCandidate('${job.id}')">+ Candidate</button>
+              <button class="ra-btn" onclick="viewCandidates('${job.id}')">View</button>
+              <button class="ra-btn" onclick="editJob('${job.id}')">Edit</button>
+              <button class="ra-btn" onclick="exportCandidates('${job.id}')">Export</button>
+              <button class="ra-btn" onclick="duplicateJob('${job.id}')">Duplicate</button>
+              <button class="ra-btn danger" onclick="deleteJob('${job.id}')">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
       });
 
-      stages.forEach(stage => {
-        const jobs = grouped[stage];
-        document.getElementById(`count-${stage}`).textContent = jobs.length;
-        const start = currentPage[stage] * ITEMS_PER_PAGE;
-        const end = start + ITEMS_PER_PAGE;
-        const pageJobs = jobs.slice(start, end);
-
-        const container = document.getElementById(`jobs-${stage}`);
-        pageJobs.forEach(job => {
-          const avg = job.candidates && job.candidates.length > 0 
-            ? Math.round(job.candidates.reduce((sum, c) => sum + (c.match_score || 0), 0) / job.candidates.length)
-            : 0;
-          const card = document.createElement('div');
-          card.className = 'job-card';
-          card.innerHTML = `
-            <div class="job-title">${job.title}</div>
-            <div class="job-summary">${job.summary}</div>
-            <div class="job-stats">
-              <span>🧑‍💼 <span class="stat-value">${job.candidates ? job.candidates.length : 0}</span></span>
-              <span>📊 Avg: <span class="stat-value">${avg}%</span></span>
-              <button class="expand-btn" onclick="toggleExpand(this, '${job.id}')">▼</button>
-            </div>
-            <div class="job-expanded" id="expanded-${job.id}">
-              <div class="job-meta-line">
-                <span>📍 ${job.location || '—'}</span>
-                <span>💰 ${job.salary || '—'}</span>
-              </div>
-              <div class="job-meta-line">
-                <span>⏳ ${job.start_date || '—'}</span>
-              </div>
-              <div class="expanded-section">
-                <div class="expanded-label">Department</div>
-                <div class="expanded-value">${job.department || '—'} · ${job.employment_type || '—'}</div>
-              </div>
-              <div class="expanded-section">
-                <div class="expanded-label">Skills</div>
-                <div class="expanded-value">${job.skills || '—'}</div>
-              </div>
-              <div class="expanded-section">
-                <div class="expanded-label">Full Job Description</div>
-                <div class="jd-full">${job.jd || 'No full JD available.'}</div>
-              </div>
-              <div class="stage-control">
-                <span class="stage-label">Stage:</span>
-                <select class="stage-select" onchange="updateJobStage('${job.id}', this.value)">
-                  <option value="planning" ${job.stage === 'planning' ? 'selected' : ''}>📌 Planning</option>
-                  <option value="hiring" ${job.stage === 'hiring' ? 'selected' : ''}>🔍 Hiring</option>
-                  <option value="offer" ${job.stage === 'offer' ? 'selected' : ''}>💼 Offer</option>
-                  <option value="closed" ${job.stage === 'closed' ? 'selected' : ''}>✅ Closed</option>
-                </select>
-              </div>
-            </div>
-            <div class="job-actions">
-              <button class="btn-small btn-add-candidate" onclick="addCandidate('${job.id}')">+ Candidate</button>
-              <button class="btn-small btn-view-candidates" onclick="viewCandidates('${job.id}')">View</button>
-              <button class="btn-small btn-export" onclick="exportCandidates('${job.id}')">📥 Export</button>
-              <button class="btn-small btn-edit" onclick="editJob('${job.id}')">✏️ Edit</button>
-              <button class="btn-small btn-duplicate" onclick="duplicateJob('${job.id}')">📋 Duplicate</button>
-              <button class="btn-small btn-delete" onclick="deleteJob('${job.id}')">🗑️ Delete</button>
-            </div>
-          `;
-          container.appendChild(card);
-        });
-
-        const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
-        if (totalPages > 1) {
-          const pagContainer = document.getElementById(`pagination-${stage}`);
-          const prevBtn = document.createElement('button');
-          prevBtn.className = 'page-btn';
-          prevBtn.textContent = '← Prev';
-          prevBtn.disabled = currentPage[stage] === 0;
-          prevBtn.onclick = () => { currentPage[stage]--; renderPipeline(); };
-          pagContainer.appendChild(prevBtn);
-
-          const info = document.createElement('span');
-          info.className = 'page-info';
-          info.textContent = `Page ${currentPage[stage] + 1} of ${totalPages}`;
-          pagContainer.appendChild(info);
-
-          const nextBtn = document.createElement('button');
-          nextBtn.className = 'page-btn';
-          nextBtn.textContent = 'Next →';
-          nextBtn.disabled = currentPage[stage] >= totalPages - 1;
-          nextBtn.onclick = () => { currentPage[stage]++; renderPipeline(); };
-          pagContainer.appendChild(nextBtn);
-        }
-      });
+      document.getElementById('tableCount').textContent =
+        `${filteredJobs.length} job${filteredJobs.length === 1 ? '' : 's'}`;
     }
 
     async function updateJobStage(jobId, newStage) {
@@ -1582,7 +1949,7 @@
         lastCandidateAnalysis.mergedText += "\n\n[Recruiter answers]: " + text;
         requestData.candidate_text = lastCandidateAnalysis.mergedText;
         requestData.finalize = true;
-        addMessage("⏳ Scoring the candidate based on your answers...", false);
+        addMessage("Scoring the candidate based on your answers...", false);
       } else if (isFollowUp) {
         requestData.user_question = text;
         requestData.previous_analysis = lastCandidateAnalysis.analysis;
@@ -1624,11 +1991,11 @@
             candidateName: result.candidate_name || ''
           };
 
-          let prelimMsg = `**📋 Preliminary Analysis** — no score yet\n\nJob: ${selectedJob.title}\n\nKey skills found: ${(result.key_skills_found || []).join(', ')}\n\nGaps: ${(result.gaps || []).join(', ')}\n\n${result.analysis}`;
+          let prelimMsg = `**Preliminary Analysis** — no score yet\n\nJob: ${selectedJob.title}\n\nKey skills found: ${(result.key_skills_found || []).join(', ')}\n\nGaps: ${(result.gaps || []).join(', ')}\n\n${result.analysis}`;
           addMessage(prelimMsg, false);
 
           if (result.questions_to_ask && result.questions_to_ask.length > 0) {
-            let questionsMsg = "\n\n🤔 **Before I can score this candidate, I need to know:**\n";
+            let questionsMsg = "\n\n**Before I can score this candidate, I need to know:**\n";
             result.questions_to_ask.forEach((q, i) => {
               questionsMsg += `${i+1}. ${q}\n`;
             });
@@ -1659,7 +2026,7 @@
         const badgeText = getMatchBadgeText(result.recommendation);
 
         const scoreBasis = isPendingScore ? 'Based on the profile + your answers\n' : '';
-        const msg = `**🎯 AI Screening Report**\n${badgeClass ? `<span class="match-badge ${badgeClass}">${badgeText}</span>` : ''}\n\nJob: ${selectedJob.title}\nMatch: ${result.match_score}%\n${scoreBasis}\nKey skills found: ${(result.key_skills_found || []).join(', ')}\n\nGaps: ${(result.gaps || []).join(', ')}\n\n${result.analysis}`;
+        const msg = `**AI Screening Report**\n${badgeClass ? `<span class="match-badge ${badgeClass}">${badgeText}</span>` : ''}\n\nJob: ${selectedJob.title}\nMatch: ${result.match_score}%\n${scoreBasis}\nKey skills found: ${(result.key_skills_found || []).join(', ')}\n\nGaps: ${(result.gaps || []).join(', ')}\n\n${result.analysis}`;
         addMessage(msg, false);
 
         document.getElementById('actionButtons').style.display = 'flex';
@@ -1694,14 +2061,14 @@
         });
         const data = await response.json();
         if (data.success) {
-          addMessage("✅ Added to job! You can now edit this candidate with full details.", false);
+          addMessage("Added to job. You can now edit this candidate with full details.", false);
           currentJobs = await fetchJobs();
         } else {
-          addMessage("❌ Failed to add: " + (data.error || 'Unknown error'), false);
+          addMessage("Failed to add: " + (data.error || 'Unknown error'), false);
         }
       } catch (e) {
         console.error('Failed to add candidate:', e);
-        addMessage("❌ Error saving candidate.", false);
+        addMessage("Error saving candidate.", false);
       }
       
       document.getElementById('actionButtons').style.display = 'none';
@@ -1709,7 +2076,7 @@
     }
 
     function rejectCandidate() {
-      addMessage("❌ Rejected.", false);
+      addMessage("Candidate rejected.", false);
       document.getElementById('actionButtons').style.display = 'none';
       lastCandidateAnalysis = null;
     }

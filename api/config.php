@@ -25,17 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Correct path to .env
 $envPath = '/home/u678696734/domains/werecruit4you.pro/.env';
 $apiKey = '';
+$envVars = [];
 
 if (file_exists($envPath)) {
     $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
             list($key, $value) = explode('=', $line, 2);
-            if (trim($key) === 'OPENAI_API_KEY') {
-                $apiKey = trim($value);
-            }
+            $envVars[trim($key)] = trim($value);
         }
     }
+    $apiKey = $envVars['OPENAI_API_KEY'] ?? '';
 }
 
 if (empty($apiKey)) {
@@ -106,6 +106,53 @@ $db->exec("
         seniority TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (job_id) REFERENCES jobs(id)
+    )
+");
+
+// Landing page lead tables (public uploads)
+$db->exec("
+    CREATE TABLE IF NOT EXISTS talent_pool (
+        id TEXT PRIMARY KEY,
+        name TEXT,
+        email TEXT,
+        linkedin TEXT,
+        location TEXT,
+        current_job_title TEXT,
+        skills TEXT,
+        seniority TEXT,
+        short_description TEXT,
+        full_text TEXT,
+        best_match_job_id TEXT,
+        best_match_score INTEGER DEFAULT 0,
+        match_results TEXT,
+        script_answers TEXT,
+        source TEXT DEFAULT 'landing',
+        status TEXT DEFAULT 'new',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+");
+
+$db->exec("
+    CREATE TABLE IF NOT EXISTS landing_jds (
+        id TEXT PRIMARY KEY,
+        company_name TEXT,
+        contact_name TEXT,
+        email TEXT,
+        title TEXT,
+        summary TEXT,
+        category TEXT,
+        jd TEXT,
+        location TEXT,
+        salary TEXT,
+        employment_type TEXT,
+        skills TEXT,
+        best_match_candidate_id TEXT,
+        best_match_score INTEGER DEFAULT 0,
+        match_results TEXT,
+        script_answers TEXT,
+        source TEXT DEFAULT 'landing',
+        status TEXT DEFAULT 'new',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
 ");
 

@@ -1,1205 +1,983 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WeRecruit4You</title>
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      background: #faf9f7;
-      color: #0f0f0f;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      line-height: 1.5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 50px 24px 80px;
-      flex: 1;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 50px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .logo {
-      height: 64px;
-      width: auto;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .tagline {
-      font-size: 14px;
-      font-weight: 500;
-      color: #e02424;
-      background: rgba(224, 36, 36, 0.05);
-      padding: 6px 16px;
-      border-radius: 999px;
-      letter-spacing: 0.3px;
-    }
-
-    .linkedin-icon-only {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      transition: background 0.2s;
-    }
-
-    .linkedin-icon-only:hover {
-      background: rgba(10, 102, 194, 0.06);
-    }
-
-    .hero-split {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 50px;
-      margin-bottom: 60px;
-    }
-
-    .hero-text {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .hero-text h1 {
-      font-size: 48px;
-      font-weight: 800;
-      line-height: 1.15;
-      letter-spacing: -0.5px;
-      margin-bottom: 20px;
-    }
-
-    .highlight {
-      color: #e02424;
-      position: relative;
-      display: inline-block;
-    }
-
-    .highlight::after {
-      content: '';
-      position: absolute;
-      bottom: 6px;
-      left: 0;
-      width: 0;
-      height: 12px;
-      background: rgba(224, 36, 36, 0.15);
-      z-index: -1;
-      transition: width 0.8s ease;
-    }
-
-    .highlight.animate::after {
-      width: 100%;
-    }
-
-    .subtitle {
-      font-size: 18px;
-      color: #444;
-      font-weight: 400;
-      line-height: 1.6;
-    }
-
-    .ai-engine {
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 28px;
-      border: 1px solid #eee;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.05);
-      height: fit-content;
-    }
-
-    .ai-toggle {
-      display: flex;
-      background: #f0f0f0;
-      border-radius: 14px;
-      padding: 4px;
-      margin-bottom: 24px;
-      width: fit-content;
-    }
-
-    .toggle-btn {
-      padding: 8px 16px;
-      border: none;
-      background: transparent;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .toggle-btn.active {
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      color: #e02424;
-    }
-
-    .ai-input-container {
-      margin-bottom: 20px;
-    }
-
-    .ai-input {
-      width: 100%;
-      padding: 14px 18px;
-      border: 1px solid #ddd;
-      border-radius: 14px;
-      font-size: 15px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      resize: vertical;
-    }
-
-    .ai-input:focus {
-      border-color: #e02424;
-      box-shadow: 0 0 0 3px rgba(224, 36, 36, 0.1);
-    }
-
-    .ai-button {
-      width: 100%;
-      padding: 14px;
-      background: #e02424;
-      color: white;
-      border: none;
-      border-radius: 14px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .ai-button::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.6s;
-    }
-
-    .ai-button.pressed::after {
-      left: 100%;
-    }
-
-    .ai-button:hover {
-      background: #b01a1a;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(224, 36, 36, 0.3);
-    }
-
-    .gear-icon {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      margin-right: 6px;
-      opacity: 0;
-      transform: rotate(0deg);
-      transition: opacity 0.2s;
-    }
-
-    .gear-icon.spinning {
-      opacity: 1;
-      animation: spin 0.8s ease-out;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .ai-result {
-      margin-top: 20px;
-      font-size: 16px;
-      min-height: 26px;
-      line-height: 1.5;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.4s, transform 0.4s;
-    }
-
-    .ai-result.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .ai-result.highlight-num {
-      color: #e02424;
-      font-weight: 800;
-    }
-
-    .ai-hint {
-      font-size: 13px;
-      color: #777;
-      margin: 12px 0 16px;
-      font-style: italic;
-    }
-
-    .contact-prompt {
-      margin-top: 16px;
-      padding: 16px;
-      background: #fff8f8;
-      border-radius: 12px;
-      border: 1px solid rgba(224, 36, 36, 0.1);
-      text-align: center;
-      font-size: 14px;
-      color: #444;
-      line-height: 1.6;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.4s, transform 0.4s;
-    }
-
-    .contact-prompt.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .contact-prompt a {
-      color: #e02424;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .contact-prompt a:hover {
-      text-decoration: underline;
-    }
-
-    .login-prompt {
-      margin-top: 8px;
-      text-align: center;
-      font-size: 14px;
-      color: #666;
-    }
-
-    .login-btn {
-      display: inline-block;
-      color: #e02424;
-      font-weight: 600;
-      text-decoration: none;
-      font-size: 14px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: background 0.2s;
-    }
-
-    .login-btn:hover {
-      background: rgba(224, 36, 36, 0.05);
-    }
-
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    .stat-card {
-      background: #ffffff;
-      border-radius: 18px;
-      padding: 28px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      border: 1px solid #f0f0f0;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.08);
-    }
-
-    .stat-value {
-      font-size: 32px;
-      font-weight: 800;
-      color: #0f0f0f;
-      margin-bottom: 8px;
-      line-height: 1.1;
-    }
-
-    .stat-sub {
-      color: #999;
-      font-size: 18px;
-      font-weight: 600;
-      margin-left: 4px;
-    }
-
-    .stat-label {
-      font-size: 15px;
-      color: #555;
-      font-weight: 500;
-    }
-
-    .industries-banner {
-      background: white;
-      border: 1px solid #eee;
-      border-radius: 16px;
-      padding: 16px 24px;
-      text-align: center;
-      max-width: 700px;
-      margin: 0 auto 60px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-
-    .industries-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 6px;
-    }
-
-    .industries-list {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.2px;
-    }
-
-    .industries-list .amp {
-      color: #0f0f0f;
-    }
-
-    .industries-list .more {
-      color: #e02424;
-    }
-
-    .section-title {
-      font-size: 28px;
-      font-weight: 800;
-      margin: 80px 0 40px;
-      text-align: center;
-      color: #0f0f0f;
-    }
-
-    .section-subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 32px;
-      font-size: 15px;
-    }
-
-    .job-card {
-      background: #fff;
-      border: 1px solid #eee;
-      border-radius: 18px;
-      padding: 28px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-      transition: all 0.25s ease;
-      flex: 0 0 320px;
-      max-width: 320px;
-    }
-
-    .job-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-      border-color: #e02424;
-    }
-
-    .job-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: #0f0f0f;
-    }
-
-    .job-location {
-      font-size: 14px;
-      color: #e02424;
-      font-weight: 600;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .job-highlights {
-      font-size: 15px;
-      color: #444;
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-
-    .job-cta {
-      display: inline-block;
-      color: #e02424;
-      font-weight: 600;
-      text-decoration: none;
-      font-size: 15px;
-      border-bottom: 1px solid transparent;
-      transition: all 0.2s ease;
-    }
-
-    .job-cta:hover {
-      border-color: #e02424;
-    }
-
-    .loading-jobs {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-      font-size: 15px;
-    }
-
-    .no-jobs {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-      font-size: 15px;
-    }
-
-    .carousel-wrapper {
-      position: relative;
-      margin-bottom: 60px;
-    }
-
-    .carousel-container {
-      overflow: hidden;
-      padding: 8px 0;
-    }
-
-    .carousel-track {
-      display: flex;
-      gap: 24px;
-      transition: transform 0.4s ease;
-    }
-
-    .carousel-nav {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 24px;
-    }
-
-    .carousel-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 1px solid #e2e8f0;
-      background: white;
-      cursor: pointer;
-      font-size: 18px;
-      color: #475569;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .carousel-btn:hover {
-      background: #e02424;
-      color: white;
-      border-color: #e02424;
-    }
-
-    .carousel-btn:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      background: white;
-      color: #475569;
-      border-color: #e2e8f0;
-    }
-
-    .carousel-dots {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 16px;
-    }
-
-    .carousel-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #e2e8f0;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .carousel-dot.active {
-      background: #e02424;
-      width: 24px;
-      border-radius: 4px;
-    }
-
-    .evergreen-badge {
-      display: inline-block;
-      background: #e02424;
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .contact-section {
-      background: white;
-      border-radius: 20px;
-      padding: 40px;
-      max-width: 600px;
-      margin: 0 auto 60px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-      border: 1px solid #eee;
-    }
-
-    .contact-section h2 {
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-
-    .contact-section p {
-      color: #666;
-      text-align: center;
-      margin-bottom: 28px;
-      font-size: 15px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 6px;
-    }
-
-    .form-input, .form-textarea, .form-select {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      font-family: inherit;
-      font-size: 15px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .form-input:focus, .form-textarea:focus, .form-select:focus {
-      border-color: #e02424;
-      box-shadow: 0 0 0 3px rgba(224, 36, 36, 0.1);
-    }
-
-    .form-textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    .form-submit {
-      width: 100%;
-      padding: 14px;
-      background: #e02424;
-      color: white;
-      border: none;
-      border-radius: 14px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.25s ease;
-    }
-
-    .form-submit:hover {
-      background: #b01a1a;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(224, 36, 36, 0.3);
-    }
-
-    .form-submit:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .form-success {
-      background: #dcfce7;
-      color: #166534;
-      padding: 16px;
-      border-radius: 12px;
-      text-align: center;
-      margin-bottom: 20px;
-      display: none;
-    }
-
-    .form-success.show {
-      display: block;
-    }
-
-    .cta-section {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 60px;
-    }
-
-    .cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #e02424;
-      color: white;
-      padding: 16px 32px;
-      border-radius: 16px;
-      font-weight: 600;
-      font-size: 18px;
-      text-decoration: none;
-      box-shadow: 0 4px 16px rgba(224, 36, 36, 0.25);
-      transition: all 0.25s ease;
-    }
-
-    .cta:hover {
-      background: #b01a1a;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(224, 36, 36, 0.35);
-    }
-
-    .cta-whatsapp {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #25D366;
-      color: white;
-      padding: 16px 32px;
-      border-radius: 16px;
-      font-weight: 600;
-      font-size: 18px;
-      text-decoration: none;
-      box-shadow: 0 4px 16px rgba(37, 211, 102, 0.25);
-      transition: all 0.25s ease;
-    }
-
-    .cta-whatsapp:hover {
-      background: #128C7E;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
-    }
-
-    footer {
-      margin-top: auto;
-      text-align: center;
-      padding-top: 40px;
-      color: #888;
-      font-size: 13px;
-      border-top: 1px solid #eee;
-    }
-
-    @media (min-width: 768px) {
-      .logo { height: 80px; }
-      .hero-text h1 { font-size: 52px; }
-    }
-
-    @media (max-width: 900px) {
-      .hero-split {
-        grid-template-columns: 1fr;
-        gap: 40px;
-      }
-      .hero-text {
-        text-align: center;
-      }
-      .subtitle {
-        max-width: 600px;
-        margin: 0 auto;
-      }
-      .job-card {
-        flex: 0 0 280px;
-        max-width: 280px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .container { padding: 24px 16px 40px; }
-      .logo { height: 48px; }
-      header { margin-bottom: 32px; }
-      .hero-text h1 { font-size: 32px; }
-      .subtitle { font-size: 16px; }
-      .ai-engine { padding: 20px; }
-      .stat-value { font-size: 24px; }
-      .stat-card { padding: 20px; }
-      .industries-banner { padding: 12px 16px; margin-bottom: 40px; }
-      .section-title { font-size: 22px; margin: 48px 0 28px; }
-      .contact-section { padding: 24px; }
-      .cta { padding: 14px 24px; font-size: 16px; }
-      .cta-whatsapp { padding: 14px 24px; font-size: 16px; }
-      .carousel-btn { width: 36px; height: 36px; }
-      .job-card { flex: 0 0 260px; max-width: 260px; padding: 20px; }
-      .carousel-container { padding: 4px 0; }
-      .job-highlights { font-size: 14px; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>WeRecruit4You.pro — AI Recruitment Matching | Upload Your CV or Job Description</title>
+<meta name="description" content="WeRecruit4You.pro is an AI-powered recruitment matching platform. Candidates upload their CV, companies upload job descriptions, and our AI screens them against real open positions and active candidates. Subscribe to unlock full AI matching and personalized recruiting support." />
+<meta name="keywords" content="AI recruitment, job matching, CV screening, talent pool, recruitment platform, hire candidates, find a job, LinkedIn optimization, job promotion" />
+<meta name="robots" content="index, follow" />
+<meta name="author" content="WeRecruit4You.pro" />
+<link rel="canonical" href="https://werecruit4you.pro/" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://werecruit4you.pro/" />
+<meta property="og:title" content="WeRecruit4You.pro — AI Recruitment Matching" />
+<meta property="og:description" content="Upload your CV or job description. Our AI screens it against real open positions and active candidates — and tells you when there is a match." />
+<meta property="og:image" content="https://werecruit4you.pro/logo-werecruit4you.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="WeRecruit4You.pro — AI Recruitment Matching" />
+<meta name="twitter:description" content="Upload your CV or job description. Our AI screens it against real open positions and active candidates — and tells you when there is a match." />
+<meta name="twitter:image" content="https://werecruit4you.pro/logo-werecruit4you.png" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "WeRecruit4You.pro",
+  "url": "https://werecruit4you.pro/",
+  "logo": "https://werecruit4you.pro/logo-werecruit4you.png",
+  "email": "contact@werecruit4you.pro",
+  "description": "AI-powered recruitment matching platform. Candidates upload their CV, companies upload job descriptions, and our AI finds the right match."
+}
+</script>
+<link rel="icon" type="image/png" href="favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --red: #e02424;
+    --red-glow: rgba(224, 36, 36, 0.45);
+    --violet: #7c3aed;
+    --ink: #f4f4f8;
+    --ink-dim: rgba(244, 244, 248, 0.55);
+    --glass: rgba(16, 16, 26, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.09);
+  }
+  html, body { height: 100%; }
+  body {
+    background: #05050a;
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- 3D canvas ---------- */
+  #scene {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    display: block;
+  }
+  /* soft vignette above the canvas */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 42%, transparent 30%, rgba(5,5,10,0.55) 78%, rgba(5,5,10,0.9) 100%);
+  }
+
+  /* ---------- layout ---------- */
+  .page {
+    position: relative;
+    z-index: 2;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+  }
+
+  header {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 26px 4px;
+    animation: fadeDown 1.2s ease 0.4s both;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.2px;
+  }
+  .brand img {
+    height: 30px;
+    width: auto;
+    background: #fff;
+    padding: 7px 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+  }
+  .logins {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .logins a {
+    color: var(--ink-dim);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(8px);
+    transition: all 0.25s;
+  }
+  .logins a:hover { color: #fff; border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.07); }
+  .logins a.admin { color: #ffb4b4; border-color: rgba(224,36,36,0.35); }
+  .logins a.admin:hover { background: rgba(224,36,36,0.15); color: #fff; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    flex: 1;
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    text-align: center;
+    padding-bottom: 18px;
+    pointer-events: none;
+  }
+  .hero > * { pointer-events: auto; }
+  .hero h1 {
+    font-size: clamp(28px, 5.2vw, 46px);
+    font-weight: 800;
+    line-height: 1.14;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+    text-shadow: 0 4px 40px rgba(0,0,0,0.7);
+    animation: fadeUp 1.4s ease 1.4s both;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(100deg, #ff6b6b 0%, var(--red) 45%, var(--violet) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand-dot {
+    color: var(--red);
+    font-weight: 800;
+  }
+  .hero p.sub {
+    font-size: clamp(14px, 2.4vw, 17px);
+    color: var(--ink-dim);
+    font-weight: 400;
+    margin-bottom: 30px;
+    animation: fadeUp 1.4s ease 1.7s both;
+  }
+
+  /* ---------- chat ---------- */
+  .chat {
+    width: 100%;
+    max-width: 720px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+    overflow: hidden;
+    animation: fadeUp 1.4s ease 2s both;
+  }
+  .chat-messages {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 20px 20px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.15) transparent;
+  }
+  .msg {
+    max-width: 82%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    animation: msgIn 0.35s ease both;
+    white-space: pre-wrap;
+  }
+  .msg.bot {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-bottom-left-radius: 6px;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #d92020, #a4161a);
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 6px 20px rgba(224,36,36,0.3);
+  }
+  .msg.bot strong { color: #ff9d9d; }
+  .typing {
+    display: inline-flex;
+    gap: 5px;
+    padding: 14px 18px;
+  }
+  .typing span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    animation: blink 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  .chat-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+  }
+  .chat-input-row input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    padding: 13px 18px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: border 0.25s;
+  }
+  .chat-input-row input[type="text"]:focus { border-color: rgba(224,36,36,0.55); }
+  .chat-input-row input[type="text"]::placeholder { color: rgba(244,244,248,0.35); }
+  .chat-input-row input[type="text"]:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .icon-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+  .attach-btn-highlight {
+    border-color: rgba(224,36,36,0.6) !important;
+    box-shadow: 0 0 0 3px rgba(224,36,36,0.18), 0 6px 18px rgba(224,36,36,0.25);
+    animation: attachPulse 2s ease-in-out infinite;
+  }
+  @keyframes attachPulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(224,36,36,0.18), 0 6px 18px rgba(224,36,36,0.25); }
+    50% { box-shadow: 0 0 0 6px rgba(224,36,36,0.10), 0 6px 22px rgba(224,36,36,0.4); }
+  }
+  .icon-btn {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.09);
+    background: rgba(255,255,255,0.05);
+    color: var(--ink);
+    font-size: 19px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+  .icon-btn.send {
+    background: linear-gradient(135deg, var(--red), #b01a1a);
+    border: none;
+    box-shadow: 0 6px 18px var(--red-glow);
+  }
+  .icon-btn.send:hover { transform: translateY(-1px) scale(1.04); }
+
+  /* ---------- compliance modal ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(3,3,8,0.75);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; animation: fadeIn 0.25s ease; }
+  .modal {
+    background: #101018;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 22px;
+    padding: 30px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 30px 90px rgba(0,0,0,0.7);
+    animation: popIn 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+  .modal h3 { font-size: 19px; margin-bottom: 12px; }
+  .modal p { font-size: 13.5px; color: var(--ink-dim); line-height: 1.65; margin-bottom: 18px; }
+  .consent-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 22px;
+    font-size: 13.5px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .consent-row input { margin-top: 3px; accent-color: var(--red); width: 16px; height: 16px; cursor: pointer; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions button {
+    flex: 1;
+    padding: 13px;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-accept { background: var(--red); color: #fff; }
+  .btn-accept:disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.35); cursor: not-allowed; }
+  .btn-cancel-m { background: rgba(255,255,255,0.07); color: var(--ink); }
+
+  /* ---------- footer ---------- */
+  footer {
+    width: 100%;
+    max-width: 720px;
+    text-align: center;
+    padding: 26px 0 34px;
+    animation: fadeUp 1.4s ease 2.3s both;
+  }
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .footer-links a {
+    color: var(--ink);
+    text-decoration: none;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+  }
+  .footer-links a:hover { opacity: 1; color: #ff8a8a; }
+  .smallprint {
+    font-size: 11.5px;
+    color: rgba(244,244,248,0.38);
+    line-height: 1.7;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* ---------- animations ---------- */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.92) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes blink { 0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); } 40% { opacity: 1; transform: scale(1); } }
+
+  /* ---------- mobile ---------- */
+  @media (max-width: 640px) {
+    header { padding: 18px 2px; }
+    .brand span { display: none; }
+    .logins a { padding: 7px 12px; font-size: 12px; }
+    .hero { justify-content: flex-end; padding-bottom: 10px; }
+    .hero p.sub { margin-bottom: 20px; }
+    .chat { border-radius: 20px; }
+    .chat-messages { max-height: 34dvh; padding: 14px 14px 4px; }
+    .msg { max-width: 90%; font-size: 14px; }
+    .footer-links { gap: 18px; font-size: 13px; }
+    .smallprint { font-size: 10.5px; }
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <img src="logo-werecruit4you.png" alt="WeRecruit4You" class="logo" />
-      <div class="header-actions">
-        <a href="https://www.linkedin.com/company/werecruit4you-partners/" target="_blank" rel="noopener" class="linkedin-icon-only">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#0A66C2">
-            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.264 2.37 4.264 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-          </svg>
-        </a>
-        <div class="tagline">Two-way recruitment · Zero fluff</div>
+
+<canvas id="scene"></canvas>
+<div class="vignette"></div>
+
+<div class="page">
+  <header>
+    <div class="brand">
+      <img src="logo-werecruit4you.png" alt="WeRecruit4You" onerror="this.style.display='none'">
+      <span>WeRecruit4You<span class="brand-dot">.pro</span></span>
+    </div>
+    <nav class="logins">
+      <a href="client-login.html">Client login</a>
+      <a href="dashboard-preview.html" class="admin">Admin</a>
+    </nav>
+  </header>
+
+  <main class="hero">
+    <h1>Upload your <span class="grad">CV</span> or <span class="grad">JD</span>.<br>We will match you.</h1>
+    <p class="sub">AI-powered recruiting — candidates meet the right jobs, companies meet the right people.</p>
+
+    <div class="chat">
+      <div class="chat-messages" id="messages">
+        <div class="msg bot">Welcome to WeRecruit4You.<br><br>Attach your <strong>CV</strong> or <strong>job description</strong> and our AI will screen it against our live database of open positions and candidates.</div>
       </div>
-    </header>
-
-    <div class="hero-split">
-      <div class="hero-text">
-        <h1>
-          You need people?<br />
-          <span class="highlight" id="highlight1">We find them.</span><br />
-          You need a job?<br />
-          <span class="highlight" id="highlight2">We hunt it down.</span>
-        </h1>
-        <p class="subtitle">
-          WeRecruit4You operates where talent lives — LinkedIn, Liepin, Boss — and delivers real matches, fast.
-          No generic resumes. No ghosting. Just results.
-        </p>
-      </div>
-
-      <div class="ai-engine">
-        <div class="ai-toggle">
-          <button class="toggle-btn active" data-mode="candidate">I'm a candidate</button>
-          <button class="toggle-btn" data-mode="company">I'm hiring</button>
-        </div>
-
-        <div class="ai-input-container">
-          <textarea 
-            class="ai-input" 
-            id="ai-input"
-            placeholder="Paste your profile or job description..."
-            rows="3"
-          ></textarea>
-        </div>
-
-        <button class="ai-button" id="ai-submit">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-          </svg>
-          Screen Now
+      <div class="chat-input-row">
+        <button class="icon-btn" id="attachBtn" title="Attach CV or job description (PDF, Word, TXT)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
         </button>
-
-        <div class="ai-result" id="ai-result"></div>
-        <div class="contact-prompt" id="contact-prompt"></div>
-        <p class="ai-hint">Paste your profile or JD. Our AI matches you in seconds.</p>
-
-        <div class="login-prompt">
-          <div>Trusted by global brands & talent</div>
-          <div>
-            <a href="client-login.html" class="login-btn">Log in as Client</a>
-            <span style="margin: 0 8px; color: #ccc;">•</span>
-            <a href="admin/login.html" class="login-btn">Log in as Admin</a>
-          </div>
-        </div>
+        <input type="text" id="chatInput" placeholder="Upload a document to start" autocomplete="off" disabled>
+        <button class="icon-btn send" id="sendBtn" title="Send" disabled>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
       </div>
+      <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" style="display:none">
     </div>
-
-    <div class="dashboard">
-      <div class="stat-card">
-        <div class="stat-value">
-          <span id="active-main">0</span><span class="stat-sub">/15 in Q2</span>
-        </div>
-        <div class="stat-label">Active roles open</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="placed-count">0</div>
-        <div class="stat-label">Candidates placed</div>
-      </div>
-    </div>
-
-    <div class="industries-banner">
-      <div class="industries-title">INDUSTRIES WE SERVE</div>
-      <div class="industries-list">
-        Fintech, Retail, Education <span class="amp">&amp;</span> <span class="more">More</span>
-      </div>
-    </div>
-
-    <h2 class="section-title">Current Opportunities</h2>
-    <p class="section-subtitle">Active roles open right now — including evergreen positions we hire for year-round</p>
-    <div class="carousel-wrapper">
-      <div class="carousel-container">
-        <div class="carousel-track" id="carousel-track">
-          <div class="loading-jobs">Loading opportunities...</div>
-        </div>
-      </div>
-      <div class="carousel-nav">
-        <button class="carousel-btn" id="carousel-prev" onclick="moveCarousel(-1)">←</button>
-        <button class="carousel-btn" id="carousel-next" onclick="moveCarousel(1)">→</button>
-      </div>
-      <div class="carousel-dots" id="carousel-dots"></div>
-      <div id="carousel-error" style="display: none; text-align: center; padding: 16px; color: #888; font-size: 14px; margin-top: 8px;"></div>
-    </div>
-
-    <div class="contact-section">
-      <div class="form-success" id="form-success">
-        ✅ Message sent! We'll get back to you within 24 hours.
-      </div>
-      <h2>Get in Touch</h2>
-      <p>Tell us what you need. We'll reply fast.</p>
-      <form id="contact-form" onsubmit="handleContactSubmit(event)">
-        <div class="form-group">
-          <label class="form-label">Your Name</label>
-          <input type="text" class="form-input" id="contact-name" required placeholder="John Doe">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-input" id="contact-email" required placeholder="john@company.com">
-        </div>
-        <div class="form-group">
-          <label class="form-label">I am...</label>
-          <select class="form-select" id="contact-type">
-            <option value="candidate">A candidate looking for a job</option>
-            <option value="company">A company looking to hire</option>
-            <option value="partner">A potential partner</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Message</label>
-          <textarea class="form-textarea" id="contact-message" required placeholder="Tell us about your needs, the role, or what you're looking for..."></textarea>
-        </div>
-        <button type="submit" class="form-submit" id="contact-submit">Send Message</button>
-      </form>
-    </div>
-
-    <div class="cta-section">
-      <a href="https://wa.me/8616600044827" target="_blank" rel="noopener" class="cta-whatsapp">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 5.834h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-        WhatsApp us
-      </a>
-    </div>
-  </div>
+  </main>
 
   <footer>
-    &copy; 2025 WeRecruit4You. All rights reserved.
+    <div class="footer-links">
+      <a href="mailto:contact@werecruit4you.pro">Contact us</a>
+    </div>
+    <p class="smallprint">
+      WeRecruit4You is an AI-powered recruitment matching platform. Candidates upload their CV, companies upload their job descriptions, and our AI finds the right match. Candidates and companies can subscribe to unlock the full power of AI matching and personalized recruiting support. By using this chat you agree to our processing of your data for recruitment purposes.
+    </p>
   </footer>
+</div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => document.getElementById('highlight1').classList.add('animate'), 300);
-      setTimeout(() => document.getElementById('highlight2').classList.add('animate'), 600);
+<!-- compliance modal -->
+<div class="modal-overlay" id="consentModal">
+  <div class="modal">
+    <h3>Before you upload — how we use your data</h3>
+    <p>
+      When you upload your CV or job description, our AI will <strong>screen it against real data</strong> — live open positions and active candidates in our database.
+      If there is a strong match, we will tell you right away.
+    </p>
+    <p>
+      If there is no match today, we may <strong>keep your data for future screenings</strong> — and that works in your favor: new positions and new candidates arrive constantly, so a match that doesn't exist today may exist next month. If that happens, <strong>we will contact you</strong>.
+    </p>
+    <p>
+      Your data is handled confidentially and used solely for recruitment matching. You may request its deletion at any time at <strong>contact@werecruit4you.pro</strong>.
+    </p>
+    <label class="consent-row">
+      <input type="checkbox" id="consentCheck">
+      <span>I have read and agree to the processing of my data as described above.</span>
+    </label>
+    <div class="modal-actions">
+      <button class="btn-cancel-m" id="consentCancel">Cancel</button>
+      <button class="btn-accept" id="consentAccept" disabled>Continue to upload</button>
+    </div>
+  </div>
+</div>
 
-      function animateCounter(el, target) {
-        let start = 0;
-        const duration = 1200;
-        const increment = target / (duration / 16);
-        const timer = setInterval(() => {
-          start += increment;
-          if (start >= target) {
-            el.textContent = target === 100 ? '100+' : target;
-            clearInterval(timer);
-          } else {
-            el.textContent = Math.ceil(start);
-          }
-        }, 16);
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================
+   LIQUID PLANET SCENE
+   ============================================================ */
+(function () {
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.set(0, 0, 9.5);
+
+  /* ---- noise GLSL (Ashima simplex 3D, abbreviated) ---- */
+  const noiseGLSL = `
+    vec3 mod289(vec3 x){return x - floor(x*(1.0/289.0))*289.0;}
+    vec4 mod289(vec4 x){return x - floor(x*(1.0/289.0))*289.0;}
+    vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314*r;}
+    float snoise(vec3 v){
+      const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+      const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+      vec3 i = floor(v + dot(v, C.yyy));
+      vec3 x0 = v - i + dot(i, C.xxx);
+      vec3 g = step(x0.yzx, x0.xyz);
+      vec3 l = 1.0 - g;
+      vec3 i1 = min(g.xyz, l.zxy);
+      vec3 i2 = max(g.xyz, l.zxy);
+      vec3 x1 = x0 - i1 + C.xxx;
+      vec3 x2 = x0 - i2 + C.yyy;
+      vec3 x3 = x0 - D.yyy;
+      i = mod289(i);
+      vec4 p = permute(permute(permute(
+                i.z + vec4(0.0, i1.z, i2.z, 1.0))
+              + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+              + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+      float n_ = 0.142857142857;
+      vec3 ns = n_ * D.wyz - D.xzx;
+      vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+      vec4 x_ = floor(j * ns.z);
+      vec4 y_ = floor(j - 7.0 * x_);
+      vec4 x = x_ * ns.x + ns.yyyy;
+      vec4 y = y_ * ns.x + ns.yyyy;
+      vec4 h = 1.0 - abs(x) - abs(y);
+      vec4 b0 = vec4(x.xy, y.xy);
+      vec4 b1 = vec4(x.zw, y.zw);
+      vec4 s0 = floor(b0)*2.0 + 1.0;
+      vec4 s1 = floor(b1)*2.0 + 1.0;
+      vec4 sh = -step(h, vec4(0.0));
+      vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+      vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+      vec3 p0 = vec3(a0.xy, h.x);
+      vec3 p1 = vec3(a0.zw, h.y);
+      vec3 p2 = vec3(a1.xy, h.z);
+      vec3 p3 = vec3(a1.zw, h.w);
+      vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+      p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+      vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+      m = m * m;
+      return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+    }
+  `;
+
+  /* ---- brand "W" rendered to a texture ---- */
+  function makeWTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, 512, 512);
+    ctx.font = '800 300px Inter, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(224, 36, 36, 0.85)';
+    ctx.shadowBlur = 40;
+    ctx.fillStyle = '#f23434';
+    ctx.fillText('W', 256, 278);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#f03a3a';
+    ctx.fillText('W', 256, 278);
+    return new THREE.CanvasTexture(c);
+  }
+
+  /* ---- liquid shell: wild at start, condenses into a glass sphere ---- */
+  const planetUniforms = {
+    uTime: { value: 0 },
+    uProgress: { value: 0 }
+  };
+
+  const planetMat = new THREE.ShaderMaterial({
+    uniforms: planetUniforms,
+    vertexShader: noiseGLSL + `
+      uniform float uTime;
+      uniform float uProgress;
+      varying float vNoise;
+      varying vec3 vNormal;
+      varying vec3 vPos;
+      void main() {
+        float speed = uTime * 0.35;
+        // liquid chaos at the start; perfectly smooth sphere once materialized
+        float amp = mix(0.9, 0.012, uProgress);
+        float freq = mix(1.15, 2.0, uProgress);
+        float n = snoise(normal * freq + speed);
+        n += 0.35 * snoise(normal * freq * 2.3 - speed * 0.7);
+        vNoise = n;
+        vec3 newPos = position + normal * n * amp;
+        vNormal = normalize(normalMatrix * normal);
+        vPos = (modelViewMatrix * vec4(newPos, 1.0)).xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPos, 1.0);
       }
-
-      animateCounter(document.getElementById('active-main'), 3);
-      animateCounter(document.getElementById('placed-count'), 100);
-
-      loadJobs();
-
-      const toggleButtons = document.querySelectorAll('.toggle-btn');
-      const aiInput = document.getElementById('ai-input');
-      const aiResult = document.getElementById('ai-result');
-      const contactPrompt = document.getElementById('contact-prompt');
-      const aiButton = document.getElementById('ai-submit');
-      let currentMode = 'candidate';
-
-      toggleButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          toggleButtons.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentMode = btn.dataset.mode;
-          if (currentMode === 'candidate') {
-            aiInput.placeholder = "e.g., Senior Accountant with IFRS experience...";
-          } else {
-            aiInput.placeholder = "Paste your full job description...";
-          }
-          aiResult.textContent = '';
-          aiResult.classList.remove('show');
-          contactPrompt.textContent = '';
-          contactPrompt.classList.remove('show');
-        });
-      });
-
-      function getMockCount(text, mode) {
-        const lower = text.toLowerCase();
-        if (mode === 'candidate') {
-          if (lower.includes('account') || lower.includes('finance')) return 3;
-          if (lower.includes('quality') || lower.includes('qc')) return 2;
-          if (lower.includes('engineer') || lower.includes('tech')) return 4;
-          if (lower.includes('retail') || lower.includes('store')) return 3;
-          if (lower.includes('marketing') || lower.includes('sales')) return 3;
-          if (lower.includes('hr') || lower.includes('human')) return 2;
-          return Math.floor(Math.random() * 3) + 1;
-        } else {
-          if (lower.includes('account') || lower.includes('finance')) return 3;
-          if (lower.includes('quality') || lower.includes('qc')) return 2;
-          if (lower.includes('engineer') || lower.includes('tech')) return 5;
-          if (lower.includes('retail') || lower.includes('store')) return 4;
-          if (lower.includes('marketing') || lower.includes('sales')) return 3;
-          if (lower.includes('hr') || lower.includes('human')) return 2;
-          return Math.floor(Math.random() * 4) + 1;
-        }
+    `,
+    fragmentShader: `
+      uniform float uProgress;
+      varying float vNoise;
+      varying vec3 vNormal;
+      varying vec3 vPos;
+      void main() {
+        vec3 viewDir = normalize(-vPos);
+        float fresnel = pow(1.0 - max(dot(viewDir, normalize(vNormal)), 0.0), 2.8);
+        // liquid state: fiery red-violet noise
+        float h = smoothstep(-0.7, 0.9, vNoise);
+        vec3 liquid = mix(vec3(0.10, 0.06, 0.18), vec3(0.48, 0.23, 0.90), h);
+        liquid = mix(liquid, vec3(0.88, 0.14, 0.14), smoothstep(0.55, 1.0, h));
+        liquid += fresnel * vec3(1.0, 0.45, 0.40) * 0.8;
+        // glass state: nearly clear with a subtle red-violet rim
+        vec3 glass = vec3(0.04, 0.04, 0.08) + fresnel * mix(vec3(0.45, 0.25, 0.85), vec3(0.95, 0.26, 0.24), fresnel) * 0.45;
+        vec3 col = mix(liquid, glass, uProgress);
+        float alpha = mix(0.9, 0.07 + fresnel * 0.45, uProgress);
+        gl_FragColor = vec4(col, alpha);
       }
+    `,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
 
-      aiButton.addEventListener('click', () => {
-        const text = aiInput.value.trim();
-        if (!text) {
-          aiResult.innerHTML = '<span style="color:#d00">Please enter your profile or job description.</span>';
-          aiResult.classList.add('show');
-          contactPrompt.classList.remove('show');
-          return;
-        }
+  const planet = new THREE.Group();
+  const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1.15, 96), planetMat);
+  planet.add(shell);
 
-        aiButton.classList.add('pressed');
-        setTimeout(() => aiButton.classList.remove('pressed'), 600);
+  // the "W" suspended inside the sphere (billboard sprite)
+  const wSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeWTexture(),
+    transparent: true,
+    opacity: 0,
+    depthTest: false,
+    depthWrite: false
+  }));
+  wSprite.scale.setScalar(1.32);
+  wSprite.renderOrder = 5;
+  planet.add(wSprite);
 
-        aiResult.innerHTML = '<span class="gear-icon spinning"></span> Scanning database...';
-        aiResult.classList.add('show');
-        contactPrompt.classList.remove('show');
+  planet.position.y = 2.05;
+  planet.scale.setScalar(0.001);
+  scene.add(planet);
 
-        setTimeout(() => {
-          const count = getMockCount(text, currentMode);
-          let message;
-          if (currentMode === 'candidate') {
-            message = `We found <span class="highlight-num">${count} good match${count > 1 ? 'es' : ''}</span> for your profile.`;
-          } else {
-            message = `We found <span class="highlight-num">${count} qualified candidate${count > 1 ? 's' : ''}</span> for this role.`;
-          }
-          aiResult.innerHTML = message;
-          aiResult.classList.add('show');
+  /* soft halo behind planet */
+  const haloMat = new THREE.SpriteMaterial({
+    map: makeGlowTexture(),
+    color: 0xe02424,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  const halo = new THREE.Sprite(haloMat);
+  halo.scale.setScalar(5.2);
+  halo.position.copy(planet.position);
+  halo.renderOrder = -1;
+  scene.add(halo);
 
-          contactPrompt.innerHTML = currentMode === 'candidate' 
-            ? 'These are preview matches. <a href="mailto:contact@werecruit4you.pro?subject=I want full access to job matches">Contact us</a> or <a href="https://wa.me/8616600044827" target="_blank">WhatsApp us</a> to unlock full screening, detailed role info, and direct introductions.'
-            : 'These are preview matches. <a href="mailto:contact@werecruit4you.pro?subject=I want full access to candidate screening">Contact us</a> or <a href="https://wa.me/8616600044827" target="_blank">WhatsApp us</a> to unlock full candidate profiles, detailed screening reports, and interview scheduling.';
-          contactPrompt.classList.add('show');
-        }, 800);
-      });
+  function makeGlowTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(255,120,110,0.85)');
+    g.addColorStop(0.35, 'rgba(224,36,36,0.32)');
+    g.addColorStop(1, 'rgba(224,36,36,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
+  }
+
+  /* ---- orbiting mini planets + orbit rings ---- */
+  const orbiters = [];
+  const orbitGroup = new THREE.Group();
+  orbitGroup.position.copy(planet.position);
+  scene.add(orbitGroup);
+
+  // orbiters = jobs and candidates circling the W
+  const orbiterSpecs = [
+    { r: 1.95, size: 0.10, speed: 0.55, tilt: 0.45, color: '#a78bfa' },
+    { r: 2.45, size: 0.07, speed: -0.38, tilt: -0.3, color: '#f87171' },
+    { r: 3.00, size: 0.13, speed: 0.26, tilt: 0.15, color: '#c4b5fd' },
+    { r: 3.55, size: 0.055, speed: -0.18, tilt: 0.6, color: '#fca5a5' },
+    { r: 2.80, size: 0.045, speed: 0.42, tilt: -0.55, color: '#ddd6fe' }
+  ];
+
+  orbiterSpecs.forEach(spec => {
+    const pivot = new THREE.Group();
+    pivot.rotation.x = spec.tilt;
+    pivot.rotation.z = spec.tilt * 0.5;
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(spec.size, 32, 32),
+      new THREE.MeshBasicMaterial({ color: spec.color, transparent: true, opacity: 0 })
+    );
+    mesh.position.x = spec.r;
+    pivot.add(mesh);
+
+    // orbit path ring
+    const pts = [];
+    for (let i = 0; i <= 90; i++) {
+      const a = (i / 90) * Math.PI * 2;
+      pts.push(new THREE.Vector3(Math.cos(a) * spec.r, 0, Math.sin(a) * spec.r));
+    }
+    const ring = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 })
+    );
+    pivot.add(ring);
+
+    // soft glow sprite on each orbiter (jobs & candidates shining)
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: makeGlowTexture(),
+      color: spec.color,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    }));
+    glow.scale.setScalar(spec.size * 7);
+    glow.position.x = spec.r;
+    pivot.add(glow);
+
+    orbitGroup.add(pivot);
+    orbiters.push({ pivot, mesh, ring, glow, speed: spec.speed, phase: Math.random() * Math.PI * 2 });
+  });
+
+  /* ---- starfield ---- */
+  const starCount = 1600;
+  const starPos = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount; i++) {
+    const r = 22 + Math.random() * 40;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    starPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    starPos[i * 3 + 2] = r * Math.cos(phi);
+  }
+  const starGeo = new THREE.BufferGeometry();
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+    color: 0xffffff, size: 0.055, transparent: true, opacity: 0.75, sizeAttenuation: true
+  }));
+  scene.add(stars);
+
+  /* ---- intro timeline ---- */
+  const INTRO = 3.4; // seconds
+  let introT = new URLSearchParams(location.search).has('final') ? 1 : 0;
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+  /* ---- mouse parallax ---- */
+  let mx = 0, my = 0;
+  window.addEventListener('pointermove', e => {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function resize() {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    // keep planet clear of the chat card on small screens
+    const mobile = w < 640;
+    planet.position.y = mobile ? 2.35 : 2.05;
+    orbitGroup.position.y = planet.position.y;
+    halo.position.y = planet.position.y;
+    planet.userData.targetScale = mobile ? 0.55 : 0.95;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const dt = clock.getDelta();
+    const t = clock.getElapsedTime();
+
+    if (introT < 1) introT = Math.min(1, introT + dt / INTRO);
+    const e = easeOut(introT);
+
+    planetUniforms.uTime.value = t;
+    planetUniforms.uProgress.value = e;
+
+    const targetScale = (planet.userData.targetScale || 1);
+    planet.scale.setScalar(Math.max(0.001, e * targetScale));
+    planet.rotation.y = t * 0.12;
+    planet.rotation.z = Math.sin(t * 0.1) * 0.05;
+
+    // the W emerges as the shell turns to glass, then breathes gently
+    wSprite.material.opacity = Math.max(0, (e - 0.55) / 0.45) * 0.92;
+    wSprite.scale.setScalar(1.32 + Math.sin(t * 0.8) * 0.03);
+
+    haloMat.opacity = e * 0.45;
+    stars.rotation.y = t * 0.008;
+
+    orbiters.forEach(o => {
+      const a = t * o.speed + o.phase;
+      o.pivot.rotation.y = a;
+      o.mesh.material.opacity = e;
+      o.ring.material.opacity = e * 0.07;
+      o.glow.material.opacity = e * (0.5 + Math.sin(t * 1.3 + o.phase) * 0.18);
     });
 
-    let carouselJobs = [];
-    let carouselIndex = 0;
-    
-    function getCardsPerView() {
-      return window.innerWidth < 768 ? 1 : (window.innerWidth < 1200 ? 2 : 3);
-    }
+    camera.position.x += (mx * 0.55 - camera.position.x) * 0.03;
+    camera.position.y += (-my * 0.35 - camera.position.y) * 0.03;
+    camera.position.z = 10.5 - e * 5.1; // dolly in as it materializes
+    camera.lookAt(0, planet.position.y * 0.52, 0);
 
-    function updateCarousel() {
-      const track = document.getElementById('carousel-track');
-      const dotsContainer = document.getElementById('carousel-dots');
-      const prevBtn = document.getElementById('carousel-prev');
-      const nextBtn = document.getElementById('carousel-next');
-      const cardsPerView = getCardsPerView();
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
 
-      if (carouselJobs.length === 0) {
-        track.innerHTML = '<div class="no-jobs">No active opportunities right now. Check back soon!</div>';
-        dotsContainer.innerHTML = '';
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
+/* ============================================================
+   CHAT — real AI: upload → screen against live database →
+   match reveal or scripted funnel
+   ============================================================ */
+(function () {
+  const API = 'https://werecruit4you.pro/api';
+  const messages = document.getElementById('messages');
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const attachBtn = document.getElementById('attachBtn');
+  const fileInput = document.getElementById('fileInput');
+  let documentProcessed = false;
+  let leadId = null;
+  let scriptType = null;   // 'candidate' | 'company'
+  let scriptStep = -1;
+  let busy = false;
+
+  // spotlight the attach button until a document is uploaded
+  attachBtn.classList.add('attach-btn-highlight');
+
+  function unlockChat() {
+    documentProcessed = true;
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.placeholder = 'Type your answer here...';
+    attachBtn.classList.remove('attach-btn-highlight');
+  }
+
+  const modal = document.getElementById('consentModal');
+  const consentCheck = document.getElementById('consentCheck');
+  const consentAccept = document.getElementById('consentAccept');
+  const consentCancel = document.getElementById('consentCancel');
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  // bot content is ours (trusted): keep <strong>, convert **bold** and newlines
+  function fmt(text) {
+    return String(text)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function addMsg(html, who) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + who;
+    el.innerHTML = html;
+    messages.appendChild(el);
+    messages.scrollTop = messages.scrollHeight;
+    return el;
+  }
+  function showTyping() {
+    const el = document.createElement('div');
+    el.className = 'msg bot typing';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    messages.appendChild(el);
+    messages.scrollTop = messages.scrollHeight;
+    return el;
+  }
+
+  /* --- compliance gate before upload --- */
+  attachBtn.addEventListener('click', () => modal.classList.add('show'));
+  consentCheck.addEventListener('change', () => { consentAccept.disabled = !consentCheck.checked; });
+  consentCancel.addEventListener('click', () => modal.classList.remove('show'));
+  consentAccept.addEventListener('click', () => {
+    modal.classList.remove('show');
+    fileInput.click();
+  });
+
+  /* --- upload: extract, classify, screen against real data --- */
+  fileInput.addEventListener('change', async () => {
+    const f = fileInput.files[0];
+    if (!f || busy) return;
+    fileInput.value = '';
+    busy = true;
+
+    addMsg(escapeHtml('Attachment: ' + f.name), 'user');
+    const typing = showTyping();
+
+    try {
+      const fd = new FormData();
+      fd.append('document', f);
+      const res = await fetch(API + '/public-match.php', { method: 'POST', body: fd });
+      const data = await res.json();
+      typing.remove();
+
+      if (!res.ok || !data.success) {
+        addMsg(fmt(data.error || 'Something went wrong while reading your document. Please try again.'), 'bot');
+        busy = false;
         return;
       }
 
-      const cardWidth = window.innerWidth < 768 ? 260 : 320;
-      const gap = 24;
-      const maxIndex = Math.max(0, carouselJobs.length - cardsPerView);
+      leadId = data.lead_id;
+      scriptType = data.type === 'job' ? 'company' : 'candidate';
+      scriptStep = -1;
 
-      carouselIndex = Math.min(carouselIndex, maxIndex);
-      const offset = carouselIndex * (cardWidth + gap);
-      track.style.transform = `translateX(-${offset}px)`;
-
-      prevBtn.disabled = carouselIndex === 0;
-      nextBtn.disabled = carouselIndex >= maxIndex;
-
-      const totalDots = Math.ceil(carouselJobs.length / cardsPerView);
-      dotsContainer.innerHTML = '';
-      for (let i = 0; i < totalDots; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'carousel-dot' + (i === Math.floor(carouselIndex / cardsPerView) ? ' active' : '');
-        dot.onclick = () => {
-          carouselIndex = i * cardsPerView;
-          updateCarousel();
-        };
-        dotsContainer.appendChild(dot);
-      }
-    }
-
-    function moveCarousel(direction) {
-      const cardsPerView = getCardsPerView();
-      const maxIndex = Math.max(0, carouselJobs.length - cardsPerView);
-      carouselIndex += direction;
-      if (carouselIndex < 0) carouselIndex = 0;
-      if (carouselIndex > maxIndex) carouselIndex = maxIndex;
-      updateCarousel();
-    }
-
-    async function loadJobs() {
-      const track = document.getElementById('carousel-track');
-      const errorEl = document.getElementById('carousel-error');
-      
-      try {
-        const response = await fetch('https://werecruit4you.pro/api/jobs.php', {
-          method: 'GET',
-          headers: {
-            'X-Admin-Email': 'public@werecruit4you.pro'
+      if (data.match_found) {
+        let html = (scriptType === 'candidate')
+          ? 'Screening complete — <strong>we have a match for you.</strong><br>'
+          : 'Screening complete — <strong>we have matching candidates for your role.</strong><br>';
+        data.matches.forEach(m => {
+          if (scriptType === 'candidate') {
+            html += '<br><strong>' + escapeHtml(m.title || '') + '</strong>'
+              + (m.location ? ' — ' + escapeHtml(m.location) : '')
+              + ' <span style="opacity:.7">(' + m.score + '% match)</span><br>'
+              + escapeHtml(m.summary || '') + '<br>';
+          } else {
+            html += '<br><strong>' + escapeHtml(m.name || '') + '</strong>'
+              + (m.title ? ' — ' + escapeHtml(m.title) : '')
+              + ' <span style="opacity:.7">(' + m.score + '% match)</span><br>'
+              + escapeHtml(m.description || '') + '<br>';
           }
         });
-        
-        if (!response.ok) {
-          throw new Error(`Server returned ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const jobs = data.jobs || [];
-        
-        const activeJobs = jobs.filter(j => j.stage !== 'closed');
-        
-        carouselJobs = [
-          {
-            title: 'Finance Business Partner',
-            location: 'Singapore · Vietnam · Malaysia · Thailand · Germany · South Africa & more',
-            summary: 'Strategic FP&A role driving budgeting, forecasting, and commercial insights across retail operations. Review expenses, promote finance standards to brands and stores, review regional contracts, and provide financial analysis to leadership. Bachelor\'s in Finance/Accounting, strong Excel & SAP skills, analytical mindset required.',
-            mailSubject: 'Interest in Finance Business Partner role',
-            isEvergreen: true
-          },
-          {
-            title: 'Senior Accountant / Accounting Manager',
-            location: 'Multiple Locations (Global)',
-            summary: 'Group accounting, month-end close, consolidation, and IFRS/local GAAP compliance. Coordinate with shared service centers, lead statutory audits, support CFO with management reports and forecasts. Bachelor\'s in Finance/Accounting, ACCA/CPA preferred, 5+ years in multinational environment, Big 4 experience a plus.',
-            mailSubject: 'Interest in Senior Accountant / Accounting Manager role',
-            isEvergreen: true
-          }
-        ];
-        
-        activeJobs.forEach(j => {
-          carouselJobs.push({
-            title: j.title,
-            location: j.location || 'Location TBD',
-            summary: j.summary || j.jd || 'Exciting opportunity. Contact us for details.',
-            mailSubject: 'Interest in ' + j.title + ' role',
-            isEvergreen: false
-          });
-        });
-        
-        if (carouselJobs.length === 0) {
-          track.innerHTML = '<div class="no-jobs">No active opportunities right now. Check back soon!</div>';
-          updateCarousel();
-          return;
-        }
-        
-        track.innerHTML = carouselJobs.map(job => `
-          <div class="job-card">
-            ${job.isEvergreen ? '<span class="evergreen-badge">Always Hiring</span>' : ''}
-            <div class="job-title">${escapeHtml(job.title)}</div>
-            <div class="job-location">📍 ${escapeHtml(job.location)}</div>
-            <p class="job-highlights">${escapeHtml(job.summary)}</p>
-            <a href="mailto:contact@werecruit4you.pro?subject=${encodeURIComponent(job.mailSubject)}" class="job-cta">Ask for details →</a>
-          </div>
-        `).join('');
-        
-        errorEl.style.display = 'none';
-        updateCarousel();
-        
-      } catch (e) {
-        console.error('Failed to load jobs:', e);
-        carouselJobs = [
-          {
-            title: 'Finance Business Partner',
-            location: 'Singapore · Vietnam · Malaysia · Thailand · Germany · South Africa & more',
-            summary: 'Strategic FP&A role driving budgeting, forecasting, and commercial insights across retail operations. Review expenses, promote finance standards to brands and stores, review regional contracts, and provide financial analysis to leadership. Bachelor\'s in Finance/Accounting, strong Excel & SAP skills, analytical mindset required.',
-            mailSubject: 'Interest in Finance Business Partner role',
-            isEvergreen: true
-          },
-          {
-            title: 'Senior Accountant / Accounting Manager',
-            location: 'Multiple Locations (Global)',
-            summary: 'Group accounting, month-end close, consolidation, and IFRS/local GAAP compliance. Coordinate with shared service centers, lead statutory audits, support CFO with management reports and forecasts. Bachelor\'s in Finance/Accounting, ACCA/CPA preferred, 5+ years in multinational environment, Big 4 experience a plus.',
-            mailSubject: 'Interest in Senior Accountant / Accounting Manager role',
-            isEvergreen: true
-          }
-        ];
-        track.innerHTML = carouselJobs.map(job => `
-          <div class="job-card">
-            ${job.isEvergreen ? '<span class="evergreen-badge">Always Hiring</span>' : ''}
-            <div class="job-title">${escapeHtml(job.title)}</div>
-            <div class="job-location">📍 ${escapeHtml(job.location)}</div>
-            <p class="job-highlights">${escapeHtml(job.summary)}</p>
-            <a href="mailto:contact@werecruit4you.pro?subject=${encodeURIComponent(job.mailSubject)}" class="job-cta">Ask for details →</a>
-          </div>
-        `).join('');
-        errorEl.style.display = 'block';
-        errorEl.textContent = '⚠️ Could not load latest opportunities. Showing evergreen positions only.';
-        updateCarousel();
-      }
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    function handleContactSubmit(e) {
-      e.preventDefault();
-      const name = document.getElementById('contact-name').value.trim();
-      const email = document.getElementById('contact-email').value.trim();
-      const type = document.getElementById('contact-type').value;
-      const message = document.getElementById('contact-message').value.trim();
-      const submitBtn = document.getElementById('contact-submit');
-
-      if (!name || !email || !message) {
-        alert('Please fill in all fields.');
+        html += '<br>For the full details, write to us at <strong>contact@werecruit4you.pro</strong> — we will take it from there.';
+        addMsg(html, 'bot');
+        input.placeholder = 'Match found — contact us to continue';
+        busy = false;
         return;
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Sending...';
+      // no match → register + scripted funnel
+      unlockChat();
+      addMsg(fmt(scriptType === 'candidate'
+        ? 'Screening complete — **no position above the match threshold today**. Your profile stays in our screening cycle, and we will contact you the moment a strong match appears.'
+        : 'Screening complete — **no candidate above the match threshold today**. Your role stays registered, and we will contact you the moment a strong candidate appears.'), 'bot');
+      askNext('', -1);
 
-      const subject = `New contact from ${name} - ${type}`;
-      const body = `Name: ${name}%0D%0AEmail: ${email}%0D%0AType: ${type}%0D%0A%0D%0AMessage:%0D%0A${message}`;
-
-      window.location.href = `mailto:contact@werecruit4you.pro?subject=${encodeURIComponent(subject)}&body=${body}`;
-
-      setTimeout(() => {
-        document.getElementById('form-success').classList.add('show');
-        document.getElementById('contact-form').reset();
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Send Message';
-      }, 1000);
+    } catch (e) {
+      typing.remove();
+      addMsg('Connection problem — please try again in a moment.', 'bot');
     }
+    busy = false;
+  });
 
-    window.addEventListener('resize', () => {
-      updateCarousel();
-    });
-  </script>
+  /* --- scripted funnel, one question at a time --- */
+  async function askNext(answer, step) {
+    const typing = showTyping();
+    try {
+      const res = await fetch(API + '/public-chat.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: leadId, script_type: scriptType, step: step, answer: answer || '' })
+      });
+      const data = await res.json();
+      typing.remove();
+
+      if (!res.ok || !data.success) {
+        addMsg(fmt(data.error || 'Something went wrong. Please try again.'), 'bot');
+        return;
+      }
+
+      let delay = 400;
+      if (data.advice) {
+        addMsg(fmt(data.advice), 'bot');
+        delay = 1800;
+      } else if (data.ack) {
+        addMsg(fmt(data.ack), 'bot');
+        delay = 1100;
+      }
+
+      if (data.done) {
+        setTimeout(() => addMsg(fmt(data.pitch), 'bot'), delay);
+        input.placeholder = 'Conversation complete — contact us to continue';
+        input.disabled = true;
+        sendBtn.disabled = true;
+        return;
+      }
+
+      scriptStep = data.step;
+      setTimeout(() => addMsg(fmt(data.question), 'bot'), delay);
+
+    } catch (e) {
+      typing.remove();
+      addMsg('Connection problem — please try again.', 'bot');
+    }
+  }
+
+  /* --- chat answers drive the script forward --- */
+  function send() {
+    const text = input.value.trim();
+    if (!text || !documentProcessed || busy) return;
+    input.value = '';
+    addMsg(escapeHtml(text), 'user');
+    askNext(text, scriptStep);
+  }
+  sendBtn.addEventListener('click', send);
+  input.addEventListener('keypress', e => { if (e.key === 'Enter') send(); });
+})();
+
+</script>
 </body>
 </html>
