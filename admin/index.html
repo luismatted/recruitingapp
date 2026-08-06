@@ -507,6 +507,60 @@
     .input-area {
       display: flex;
       gap: 12px;
+      align-items: stretch;
+    }
+    .attach-btn {
+      width: 50px;
+      background: var(--gray-200);
+      color: var(--gray-800);
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .attach-btn:hover { background: var(--gray-300); }
+    .attach-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .attach-btn.processing {
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .upload-zone {
+      border: 2px dashed var(--gray-300);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+      background: var(--gray-100);
+    }
+    .upload-zone:hover {
+      border-color: var(--red);
+      background: #fff5f5;
+    }
+    .upload-zone.processing {
+      border-color: var(--red);
+      background: #fff5f5;
+      animation: pulse 1.2s ease-in-out infinite;
+      cursor: wait;
+    }
+    .upload-zone-icon { font-size: 24px; margin-bottom: 4px; }
+    .upload-zone-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-600);
+    }
+    .upload-zone-hint {
+      font-size: 12px;
+      color: var(--gray-600);
+      opacity: 0.75;
+      margin-top: 2px;
     }
     .chat-input {
       flex: 1;
@@ -638,14 +692,16 @@
           <div class="messages" id="messages">
             <div class="message ai-message">
               Hello! I'm your AI recruiting assistant.  
-              Select a job on the right, then paste a candidate's profile.  
+              Select a job on the right, then paste a candidate's profile — or click 📎 to upload their CV (PDF, Word, TXT).  
               I'll analyze fit and help you decide.
             </div>
           </div>
           <div class="input-area">
-            <textarea id="userInput" class="chat-input" placeholder="Paste candidate info here..." disabled></textarea>
+            <button class="attach-btn" id="attachBtn" title="Upload CV (PDF, Word, TXT)" disabled>📎</button>
+            <textarea id="userInput" class="chat-input" placeholder="Paste candidate info or upload a CV with 📎..." disabled></textarea>
             <button class="send-btn" id="sendBtn" disabled>➤</button>
           </div>
+          <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx,.txt" style="display:none;">
         </div>
 
         <div class="job-selector">
@@ -745,6 +801,12 @@
         <div class="modal-title" id="modalTitle">Add New Job</div>
         <button class="modal-close" onclick="closeModal()">×</button>
       </div>
+      <div class="upload-zone" id="jdUploadZone">
+        <div class="upload-zone-icon">📄</div>
+        <div class="upload-zone-text" id="jdUploadText">Upload JD &amp; Auto-fill</div>
+        <div class="upload-zone-hint" id="jdUploadHint">PDF, Word or TXT — the AI fills in the form for you</div>
+      </div>
+      <input type="file" id="jdFileInput" accept=".pdf,.doc,.docx,.txt" style="display:none;">
       <div class="form-group">
         <label class="form-label">Job Title</label>
         <input type="text" class="form-input" id="newJobTitle" placeholder="e.g., Senior Product Designer">
@@ -922,7 +984,110 @@
         resetModal();
         openModal();
       });
+
+      // --- CV upload in AI chat ---
+      document.getElementById('attachBtn').addEventListener('click', () => {
+        document.getElementById('cvFileInput').click();
+      });
+      document.getElementById('cvFileInput').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleCVUpload(e.target.files[0]);
+        }
+        e.target.value = '';
+      });
+
+      // --- JD upload in job modal ---
+      document.getElementById('jdUploadZone').addEventListener('click', () => {
+        if (!document.getElementById('jdUploadZone').classList.contains('processing')) {
+          document.getElementById('jdFileInput').click();
+        }
+      });
+      document.getElementById('jdFileInput').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleJDUpload(e.target.files[0]);
+        }
+        e.target.value = '';
+      });
     });
+
+    async function uploadDocument(file, mode) {
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('mode', mode);
+      const response = await fetch(`${API_URL}/parse-document.php`, {
+        method: 'POST',
+        headers: { 'X-Admin-Email': adminEmail },
+        body: formData
+      });
+      return response.json();
+    }
+
+    async function handleCVUpload(file) {
+      if (!selectedJob) return;
+      const attachBtn = document.getElementById('attachBtn');
+      attachBtn.disabled = true;
+      attachBtn.classList.add('processing');
+      addMessage(`📎 Uploading ${file.name}...`, true);
+      try {
+        const result = await uploadDocument(file, 'candidate');
+        if (result.error) {
+          addMessage('❌ ' + result.error, false);
+        } else {
+          document.getElementById('userInput').value = result.extracted_text;
+          addMessage(`✅ Extracted the text from <strong>${result.filename}</strong>. Review it below if you like, then press Send to screen this candidate.`, false);
+        }
+      } catch (e) {
+        console.error('CV upload failed:', e);
+        addMessage('❌ Upload failed. Check your connection and try again.', false);
+      }
+      attachBtn.disabled = false;
+      attachBtn.classList.remove('processing');
+    }
+
+    async function handleJDUpload(file) {
+      const zone = document.getElementById('jdUploadZone');
+      const zoneText = document.getElementById('jdUploadText');
+      const zoneHint = document.getElementById('jdUploadHint');
+      zone.classList.add('processing');
+      zoneText.textContent = `Analyzing ${file.name}...`;
+      zoneHint.textContent = 'The AI is reading the document — this takes a few seconds';
+      try {
+        const result = await uploadDocument(file, 'job');
+        if (result.error) {
+          alert('Error: ' + result.error);
+          zoneText.textContent = 'Upload JD & Auto-fill';
+          zoneHint.textContent = 'PDF, Word or TXT — the AI fills in the form for you';
+        } else {
+          const p = result.parsed || {};
+          if (p.title) document.getElementById('newJobTitle').value = p.title;
+          if (p.summary) document.getElementById('newJobSummary').value = p.summary;
+          if (p.category) {
+            const catSelect = document.getElementById('newJobCategory');
+            const match = [...catSelect.options].find(o => o.value.toLowerCase() === String(p.category).toLowerCase());
+            if (match) catSelect.value = match.value;
+          }
+          if (p.jd) document.getElementById('newJobJD').value = p.jd;
+          if (p.location) document.getElementById('newJobLocation').value = p.location;
+          if (p.salary) document.getElementById('newJobSalary').value = p.salary;
+          if (p.start_date) document.getElementById('newJobStartDate').value = p.start_date;
+          if (p.department) document.getElementById('newJobDepartment').value = p.department;
+          if (p.employment_type) {
+            const typeSelect = document.getElementById('newJobEmploymentType');
+            const match = [...typeSelect.options].find(o => o.value.toLowerCase() === String(p.employment_type).toLowerCase());
+            if (match) typeSelect.value = match.value;
+          }
+          if (p.skills) document.getElementById('newJobSkills').value = p.skills;
+          zoneText.textContent = `✅ Auto-filled from ${result.filename}`;
+          zoneHint.textContent = 'Review the fields below, adjust anything, then save';
+        }
+      } catch (e) {
+        console.error('JD upload failed:', e);
+        alert('Upload failed. Check your connection and try again.');
+        zoneText.textContent = 'Upload JD & Auto-fill';
+        zoneHint.textContent = 'PDF, Word or TXT — the AI fills in the form for you';
+      }
+      zone.classList.remove('processing');
+    }
 
     function newScreening() {
       if (!lastCandidateAnalysis) return;
@@ -1259,6 +1424,8 @@
 
     function resetModal() {
       editingJobId = null;
+      document.getElementById('jdUploadText').textContent = 'Upload JD & Auto-fill';
+      document.getElementById('jdUploadHint').textContent = 'PDF, Word or TXT — the AI fills in the form for you';
       document.getElementById('newJobTitle').value = '';
       document.getElementById('newJobSummary').value = '';
       document.getElementById('newJobJD').value = '';
@@ -1372,6 +1539,7 @@
       document.getElementById('chat-status').textContent = `Screening for: ${job.title}`;
       document.getElementById('userInput').disabled = false;
       document.getElementById('sendBtn').disabled = false;
+      document.getElementById('attachBtn').disabled = false;
       document.getElementById('chatPanel').classList.remove('chat-disabled');
       lastCandidateAnalysis = null;
       document.getElementById('actionButtons').style.display = 'none';

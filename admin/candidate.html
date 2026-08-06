@@ -200,6 +200,41 @@
       margin-bottom: 28px;
       color: var(--gray-600);
     }
+    .upload-zone {
+      border: 2px dashed var(--gray-300);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 28px;
+      background: var(--white);
+    }
+    .upload-zone:hover {
+      border-color: var(--red);
+      background: #fff5f5;
+    }
+    .upload-zone.processing {
+      border-color: var(--red);
+      background: #fff5f5;
+      animation: pulse 1.2s ease-in-out infinite;
+      cursor: wait;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .upload-zone-icon { font-size: 28px; margin-bottom: 6px; }
+    .upload-zone-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+    .upload-zone-hint {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 4px;
+    }
     .save-status {
       padding: 12px 16px;
       border-radius: 12px;
@@ -244,6 +279,14 @@
 
     <div id="save-status" class="save-status"></div>
     <div id="new-candidate-banner"></div>
+    <div id="cv-upload-container" style="display:none;">
+      <div class="upload-zone" id="cvUploadZone">
+        <div class="upload-zone-icon">📄</div>
+        <div class="upload-zone-text" id="cvUploadText">Upload CV &amp; Auto-fill</div>
+        <div class="upload-zone-hint" id="cvUploadHint">PDF, Word or TXT — the AI reads the CV and fills in this form</div>
+      </div>
+      <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx,.txt" style="display:none;">
+    </div>
 
     <div class="profile-header">
       <input type="text" id="candidate-name" class="candidate-name-input" placeholder="Candidate Full Name" />
@@ -641,6 +684,76 @@
           saveBtn.disabled = false;
         }
       }
+    }
+
+    // --- CV upload & auto-fill ---
+    if (isNewCandidate) {
+      document.getElementById('cv-upload-container').style.display = 'block';
+    }
+    document.getElementById('cvUploadZone').addEventListener('click', () => {
+      if (!document.getElementById('cvUploadZone').classList.contains('processing')) {
+        document.getElementById('cvFileInput').click();
+      }
+    });
+    document.getElementById('cvFileInput').addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleCVUpload(e.target.files[0]);
+      }
+      e.target.value = '';
+    });
+
+    function setIfEmpty(id, value) {
+      if (value) document.getElementById(id).value = value;
+    }
+
+    async function handleCVUpload(file) {
+      const zone = document.getElementById('cvUploadZone');
+      const zoneText = document.getElementById('cvUploadText');
+      const zoneHint = document.getElementById('cvUploadHint');
+      zone.classList.add('processing');
+      zoneText.textContent = `Analyzing ${file.name}...`;
+      zoneHint.textContent = 'The AI is reading the CV — this takes a few seconds';
+      try {
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('mode', 'candidate');
+        const response = await fetch(`${API_URL}/parse-document.php`, {
+          method: 'POST',
+          headers: { 'X-Admin-Email': adminEmail },
+          body: formData
+        });
+        const result = await response.json();
+        if (result.error) {
+          showStatus('❌ ' + result.error, 'error');
+          zoneText.textContent = 'Upload CV & Auto-fill';
+          zoneHint.textContent = 'PDF, Word or TXT — the AI reads the CV and fills in this form';
+        } else {
+          const p = result.parsed || {};
+          setIfEmpty('candidate-name', p.name);
+          setIfEmpty('candidate-email', p.email);
+          setIfEmpty('candidate-linkedin', p.linkedin);
+          setIfEmpty('candidate-nationality', p.nationality);
+          setIfEmpty('candidate-location', p.location);
+          setIfEmpty('candidate-current-job', p.current_job_title);
+          setIfEmpty('candidate-skills', p.skills);
+          setIfEmpty('candidate-short-desc', p.short_description);
+          if (p.seniority) {
+            const senSelect = document.getElementById('candidate-seniority');
+            const match = [...senSelect.options].find(o => o.value.toLowerCase() === String(p.seniority).toLowerCase());
+            if (match) senSelect.value = match.value;
+          }
+          setIfEmpty('full-profile', p.full_text || result.extracted_text);
+          zoneText.textContent = `✅ Auto-filled from ${result.filename}`;
+          zoneHint.textContent = 'Review the fields below, adjust anything, then Save Candidate';
+          showStatus('✅ CV parsed — review the auto-filled fields below.', 'success');
+        }
+      } catch (e) {
+        console.error('CV upload failed:', e);
+        showStatus('❌ Upload failed. Check your connection and try again.', 'error');
+        zoneText.textContent = 'Upload CV & Auto-fill';
+        zoneHint.textContent = 'PDF, Word or TXT — the AI reads the CV and fills in this form';
+      }
+      zone.classList.remove('processing');
     }
 
     loadCandidate();
