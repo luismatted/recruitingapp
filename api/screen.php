@@ -41,19 +41,49 @@ if (!$job) {
 
 $conversationHistory = $data['conversation_history'] ?? [];
 $isFollowUp = !empty($conversationHistory);
+$finalize = !empty($data['finalize']);
 
 $prompt = "You are an expert recruitment AI screening candidates for this job:\n\n";
 $prompt .= "JOB TITLE: {$job['title']}\n";
 $prompt .= "JOB DESCRIPTION:\n{$job['jd']}\n\n";
 $prompt .= "REQUIRED SKILLS: {$job['skills']}\n\n";
 
-if ($isFollowUp) {
+if ($isFollowUp && !$finalize) {
+    // ---------------------------------------------------------------
+    // Mode 1: conversational follow-up AFTER a scored screening
+    // ---------------------------------------------------------------
     $prompt .= "This is a FOLLOW-UP conversation. The user is asking a question about the previous screening.\n";
     $prompt .= "Previous candidate profile was:\n{$data['candidate_text']}\n\n";
     $prompt .= "Previous analysis was:\n" . ($data['previous_analysis'] ?? 'No previous analysis') . "\n\n";
     $prompt .= "USER'S QUESTION: {$data['user_question']}\n\n";
-    $prompt .= "Answer their question directly and helpfully. If they provide new information about the candidate, update your assessment. Be conversational but professional.\n";
+    $prompt .= "Answer their question directly and helpfully. If they provide new information about the candidate, acknowledge it in your answer. Be conversational but professional.\n";
+} elseif ($finalize) {
+    // ---------------------------------------------------------------
+    // Mode 2: FINAL scoring — the recruiter has answered the questions.
+    // Always produce a score here.
+    // ---------------------------------------------------------------
+    $prompt .= "CANDIDATE PROFILE (includes the recruiter's answers to your clarifying questions, marked as [Recruiter answers]):\n{$data['candidate_text']}\n\n";
+    $prompt .= "INSTRUCTIONS:\n";
+    $prompt .= "1. This is the FINAL screening. You MUST produce a match score now, based on ALL the information available (original profile + recruiter answers).\n";
+    $prompt .= "2. Weight the recruiter's answers heavily — they contain the information you said was missing.\n";
+    $prompt .= "3. If some questions were not fully answered, score with what you have and note the remaining uncertainty in the analysis. Never refuse to score.\n";
+    $prompt .= "4. Identify the candidate's most recent and most senior roles. Weight these heavily.\n";
+    $prompt .= "5. Look for transferable skills even if exact keywords don't match.\n";
+    $prompt .= "6. Extract the candidate's full name from the profile if present.\n\n";
+    $prompt .= "Return JSON with these exact fields:\n";
+    $prompt .= "- ready_to_score: true\n";
+    $prompt .= "- match_score: number 0-100 (required)\n";
+    $prompt .= "- candidate_name: string (extract the full name from the profile, or empty if not found)\n";
+    $prompt .= "- analysis: string with detailed assessment\n";
+    $prompt .= "- key_skills_found: array of strings\n";
+    $prompt .= "- gaps: array of strings\n";
+    $prompt .= "- recommendation: string (Strong Match / Good Match / Moderate Fit / Weak Match)\n";
+    $prompt .= "- questions_to_ask: empty array\n";
 } else {
+    // ---------------------------------------------------------------
+    // Mode 3: FIRST pass — analysis only. Score ONLY if the profile is
+    // already complete; otherwise ask questions and withhold the score.
+    // ---------------------------------------------------------------
     $prompt .= "CANDIDATE PROFILE:\n{$data['candidate_text']}\n\n";
     $prompt .= "INSTRUCTIONS:\n";
     $prompt .= "1. First, identify the candidate's most recent and most senior roles. Weight these heavily.\n";
@@ -61,19 +91,20 @@ if ($isFollowUp) {
     $prompt .= "3. Consider geographic and linguistic context. A Chinese candidate in Beijing with fintech experience likely serves Chinese merchants expanding globally.\n";
     $prompt .= "4. Look for transferable skills even if exact keywords don't match.\n";
     $prompt .= "5. Extract the candidate's full name from the profile if present.\n";
-    $prompt .= "6. Be generous with scores for senior candidates who show clear progression in relevant fields.\n\n";
+    $prompt .= "6. Be generous with scores for senior candidates who show clear progression in relevant fields.\n";
+    $prompt .= "7. CRITICAL: Decide whether you have ENOUGH information for a reliable match score. Missing years of experience, unclear seniority, missing location/work authorization, vague achievements, or missing must-have skills = NOT enough. Do NOT guess a score when important information is missing.\n\n";
     $prompt .= "Return JSON with these exact fields:\n";
-    $prompt .= "- match_score: number 0-100\n";
+    $prompt .= "- ready_to_score: boolean (true only if the profile gives you enough information for a reliable score)\n";
+    $prompt .= "- match_score: number 0-100 if ready_to_score is true; null if false (never guess)\n";
     $prompt .= "- candidate_name: string (extract the full name from the profile, or empty if not found)\n";
-    $prompt .= "- analysis: string with detailed assessment\n";
+    $prompt .= "- analysis: string with detailed assessment (always provided, this is the main output of this step)\n";
     $prompt .= "- key_skills_found: array of strings\n";
     $prompt .= "- gaps: array of strings\n";
-    $prompt .= "- recommendation: string (Strong Match / Good Match / Moderate Fit / Weak Match)\n";
-    $prompt .= "- needs_more_info: boolean\n";
-    $prompt .= "- questions_to_ask: array of strings (2-3 specific questions directed to the RECRUITER, not the candidate, if needs_more_info is true)\n";
+    $prompt .= "- recommendation: string (Strong Match / Good Match / Moderate Fit / Weak Match) if ready_to_score is true, otherwise empty string\n";
+    $prompt .= "- questions_to_ask: array of 2-4 specific questions directed to the RECRUITER (not the candidate) covering exactly the information you are missing; empty array if ready_to_score is true\n";
 }
 
-$systemPrompt = "You are a senior recruiter with 15 years experience in fintech and cross-border payments. You understand that LinkedIn profiles are often incomplete, so you read between the lines. You know that Pagsmile, Thunes, dLocal, etc. are LATAM/cross-border payment companies. You know that a Chinese person in Beijing doing 'Account Manager' at a fintech likely handles international merchant acquisition. You are smart, contextual, and generous with senior candidates. When asking questions, ask the RECRUITER (the person using this tool), not the candidate directly.";
+$systemPrompt = "You are a senior recruiter with 15 years experience in fintech and cross-border payments. You understand that LinkedIn profiles and CVs are often incomplete, so you read between the lines — but you never invent facts, and you never score a candidate when key information is missing. You know that Pagsmile, Thunes, dLocal, etc. are LATAM/cross-border payment companies. You know that a Chinese person in Beijing doing 'Account Manager' at a fintech likely handles international merchant acquisition. You are smart, contextual, and generous with senior candidates. When asking questions, ask the RECRUITER (the person using this tool), not the candidate directly.";
 
 $messages = [
     ['role' => 'system', 'content' => $systemPrompt]
@@ -91,7 +122,7 @@ $apiData = [
     'temperature' => 0.3
 ];
 
-if (!$isFollowUp) {
+if (!($isFollowUp && !$finalize)) {
     $apiData['response_format'] = ['type' => 'json_object'];
 }
 
@@ -124,7 +155,7 @@ if (!isset($result['choices'][0]['message']['content'])) {
 
 $content = $result['choices'][0]['message']['content'];
 
-if ($isFollowUp) {
+if ($isFollowUp && !$finalize) {
     echo json_encode([
         'success' => true,
         'is_follow_up' => true,
@@ -141,16 +172,21 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     exit;
 }
 
+$readyToScore = !empty($parsed['ready_to_score']);
+if ($finalize) {
+    $readyToScore = true;
+}
+
 echo json_encode([
     'success' => true,
-    'match_score' => $parsed['match_score'] ?? 0,
+    'ready_to_score' => $readyToScore,
+    'match_score' => $readyToScore ? ($parsed['match_score'] ?? 0) : null,
     'candidate_name' => $parsed['candidate_name'] ?? '',
     'analysis' => $parsed['analysis'] ?? '',
     'key_skills_found' => $parsed['key_skills_found'] ?? [],
     'gaps' => $parsed['gaps'] ?? [],
-    'recommendation' => $parsed['recommendation'] ?? '',
-    'needs_more_info' => $parsed['needs_more_info'] ?? false,
-    'questions_to_ask' => $parsed['questions_to_ask'] ?? [],
+    'recommendation' => $readyToScore ? ($parsed['recommendation'] ?? '') : '',
+    'questions_to_ask' => $readyToScore ? [] : ($parsed['questions_to_ask'] ?? []),
     'job_id' => $data['job_id']
 ]);
 ?>

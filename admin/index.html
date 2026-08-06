@@ -1563,26 +1563,34 @@
       const input = document.getElementById('userInput');
       const text = input.value.trim();
       if (!text || !selectedJob) return;
-      
+
       const isFollowUp = lastCandidateAnalysis !== null;
-      
+      const isPendingScore = isFollowUp && lastCandidateAnalysis.preliminary;
+      const previousName = isFollowUp ? (lastCandidateAnalysis.candidateName || '') : '';
+
       addMessage(text, true);
       input.value = '';
       document.getElementById('sendBtn').disabled = true;
-      
+
       const requestData = {
         candidate_text: isFollowUp ? lastCandidateAnalysis.rawText : text,
         job_id: selectedJob.id
       };
-      
-      if (isFollowUp) {
+
+      if (isPendingScore) {
+        // Recruiter is answering the AI's questions -> run the FINAL scored screening
+        lastCandidateAnalysis.mergedText += "\n\n[Recruiter answers]: " + text;
+        requestData.candidate_text = lastCandidateAnalysis.mergedText;
+        requestData.finalize = true;
+        addMessage("⏳ Scoring the candidate based on your answers...", false);
+      } else if (isFollowUp) {
         requestData.user_question = text;
         requestData.previous_analysis = lastCandidateAnalysis.analysis;
         requestData.conversation_history = [
           { role: 'assistant', content: lastCandidateAnalysis.analysis }
         ];
       }
-      
+
       try {
         const response = await fetch(`${API_URL}/screen.php`, {
           method: 'POST',
@@ -1590,13 +1598,13 @@
           body: JSON.stringify(requestData)
         });
         const result = await response.json();
-        
+
         if (result.error) {
           addMessage('Error: ' + result.error, false);
           document.getElementById('sendBtn').disabled = false;
           return;
         }
-        
+
         if (result.is_follow_up) {
           addMessage(result.response, false);
           if (lastCandidateAnalysis) {
@@ -1605,33 +1613,55 @@
           document.getElementById('sendBtn').disabled = false;
           return;
         }
-        
+
+        // Preliminary analysis — no score until the recruiter answers the questions
+        if (result.ready_to_score === false && !isPendingScore) {
+          lastCandidateAnalysis = {
+            preliminary: true,
+            rawText: text,
+            mergedText: text,
+            analysis: result.analysis,
+            candidateName: result.candidate_name || ''
+          };
+
+          let prelimMsg = `**📋 Preliminary Analysis** — no score yet\n\nJob: ${selectedJob.title}\n\nKey skills found: ${(result.key_skills_found || []).join(', ')}\n\nGaps: ${(result.gaps || []).join(', ')}\n\n${result.analysis}`;
+          addMessage(prelimMsg, false);
+
+          if (result.questions_to_ask && result.questions_to_ask.length > 0) {
+            let questionsMsg = "\n\n🤔 **Before I can score this candidate, I need to know:**\n";
+            result.questions_to_ask.forEach((q, i) => {
+              questionsMsg += `${i+1}. ${q}\n`;
+            });
+            questionsMsg += "\nReply with the answers and I'll give you the final match score. If you don't have the info, just say \"score anyway\".";
+            addMessage(questionsMsg, false);
+          }
+
+          document.getElementById('actionButtons').style.display = 'none';
+          document.getElementById('sendBtn').disabled = false;
+          return;
+        }
+
+        // Final scored screening (immediate or after the recruiter's answers)
+        const baseText = isPendingScore ? lastCandidateAnalysis.mergedText : text;
         lastCandidateAnalysis = {
+          preliminary: false,
           matchScore: result.match_score,
           analysis: result.analysis,
-          rawText: text,
-          mergedText: text,
+          rawText: baseText,
+          mergedText: baseText,
           keySkills: result.key_skills_found,
           gaps: result.gaps,
           recommendation: result.recommendation,
-          candidateName: result.candidate_name || ''
+          candidateName: result.candidate_name || previousName
         };
-        
+
         const badgeClass = getMatchBadgeClass(result.recommendation);
         const badgeText = getMatchBadgeText(result.recommendation);
-        
-        const msg = `**AI Screening Report**\n${badgeClass ? `<span class="match-badge ${badgeClass}">${badgeText}</span>` : ''}\n\nJob: ${selectedJob.title}\nMatch: ${result.match_score}%\n\nKey skills found: ${(result.key_skills_found || []).join(', ')}\n\nGaps: ${(result.gaps || []).join(', ')}\n\n${result.analysis}`;
+
+        const scoreBasis = isPendingScore ? 'Based on the profile + your answers\n' : '';
+        const msg = `**🎯 AI Screening Report**\n${badgeClass ? `<span class="match-badge ${badgeClass}">${badgeText}</span>` : ''}\n\nJob: ${selectedJob.title}\nMatch: ${result.match_score}%\n${scoreBasis}\nKey skills found: ${(result.key_skills_found || []).join(', ')}\n\nGaps: ${(result.gaps || []).join(', ')}\n\n${result.analysis}`;
         addMessage(msg, false);
-        
-        if (result.needs_more_info && result.questions_to_ask && result.questions_to_ask.length > 0) {
-          let questionsMsg = "\n\n🤔 **I need more information to be accurate:**\n";
-          result.questions_to_ask.forEach((q, i) => {
-            questionsMsg += `${i+1}. ${q}\n`;
-          });
-          questionsMsg += "\nAsk me any follow-up questions or just click 'Add to Job' if you're satisfied.";
-          addMessage(questionsMsg, false);
-        }
-        
+
         document.getElementById('actionButtons').style.display = 'flex';
       } catch (e) {
         console.error('AI screening failed:', e);

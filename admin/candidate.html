@@ -641,7 +641,8 @@
                 headers: getHeaders(),
                 body: JSON.stringify({
                   job_id: jobId,
-                  candidate_text: fullText
+                  candidate_text: fullText,
+                  finalize: true
                 })
               });
               const screenData = await screenResponse.json();
